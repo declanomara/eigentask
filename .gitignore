@@ -1,0 +1,17 @@
+# IDE 
+.vscode
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+
+# UV
+.env
+.venv
+
+# Logs
+logs/
