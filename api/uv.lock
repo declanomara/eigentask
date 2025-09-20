@@ -33,6 +33,7 @@ dependencies = [
     { name = "httpx" },
     { name = "itsdangerous" },
     { name = "pyjwt" },
+    { name = "python-dotenv" },
     { name = "uvicorn" },
 ]
 
@@ -49,6 +50,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "itsdangerous", specifier = ">=2.2.0" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]
 

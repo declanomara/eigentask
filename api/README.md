@@ -61,6 +61,24 @@ Then:
 1. Visit `/login` to authenticate.
 2. You should land on `/protected` after callback with a valid `access_token` cookie.
 
+### .env for development
+
+This API loads environment variables from a local `.env` if present (via `python-dotenv`). Create `api/.env` with values like:
+
+```
+KEYCLOAK_URL=https://eigentask.com/auth
+KEYCLOAK_REALM=eigentask
+KEYCLOAK_CLIENT_ID=eigentask
+# KEYCLOAK_CLIENT_SECRET=
+REDIRECT_URI=http://localhost:8000/callback
+POST_LOGOUT_REDIRECT_URI=http://localhost:8000/
+SESSION_SECRET=change-me-dev-secret-32bytes-min
+COOKIE_SECURE=false
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+Note: `.env` is ignored by git; copy values from the example above.
+
 ## Notes
 
 - The minimal example sets tokens in HttpOnly cookies to keep the sample simple. In production, prefer splitting frontend and backend concerns and use secure cookie settings with HTTPS.

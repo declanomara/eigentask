@@ -10,6 +10,7 @@ import secrets
 import hashlib
 import base64
 import httpx
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Eigentask API", description="API for Eigentask")
 
@@ -22,6 +23,7 @@ SESSION_SECRET: str = os.getenv("SESSION_SECRET", "dev-insecure-session-secret")
 COOKIE_DOMAIN: str | None = os.getenv("COOKIE_DOMAIN")
 COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
 REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/callback")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
 
 # Minimal session support for PKCE/state
 app.add_middleware(
@@ -29,6 +31,15 @@ app.add_middleware(
     secret_key=SESSION_SECRET,
     same_site="lax",
     https_only=COOKIE_SECURE,
+)
+
+# CORS for frontend dev server to call protected endpoints with credentials
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
