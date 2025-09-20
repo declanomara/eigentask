@@ -13,5 +13,9 @@ __pycache__
 .env
 .venv
 
+# Svelte
+node_modules
+.svelte-kit
+
 # Logs
 logs/
