@@ -51,25 +51,31 @@ class TokenResponse(TypedDict):
     refresh_token: NotRequired[str]
     scope: NotRequired[str]
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+
 @app.get("/health")
 async def health():
     return {"message": "OK"}
+
 
 @app.get("/protected")
 async def protected_route(current_user: dict[str, Any] = Depends(get_current_user)):
     """Protected route that requires authentication"""
     return {"message": "Hello, authenticated user!", "user": current_user}
 
+
 def _generate_pkce_pair() -> tuple[str, str]:
     verifier_bytes = secrets.token_urlsafe(64)
     verifier = verifier_bytes[:128]
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode("utf-8")).digest()
-    ).decode("utf-8").rstrip("=")
+    challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest())
+        .decode("utf-8")
+        .rstrip("=")
+    )
     return verifier, challenge
 
 
@@ -127,7 +133,11 @@ async def oidc_callback(request: Request, code: str, state: str):
 
     async with httpx.AsyncClient() as client:
         token_resp = await client.post(
-            discovery["token_endpoint"], data=data, headers=headers, auth=auth, timeout=15
+            discovery["token_endpoint"],
+            data=data,
+            headers=headers,
+            auth=auth,
+            timeout=15,
         )
         token_resp.raise_for_status()
         tokens = cast(TokenResponse, token_resp.json())
@@ -162,12 +172,17 @@ async def logout(request: Request):
     """Clear cookies and redirect to Keycloak end-session if available."""
     discovery = await get_discovery_document()
     id_token = request.cookies.get("id_token")
-    post_logout_redirect_uri = os.getenv("POST_LOGOUT_REDIRECT_URI", "http://localhost:8000/")
+    post_logout_redirect_uri = os.getenv(
+        "POST_LOGOUT_REDIRECT_URI", "http://localhost:8000/"
+    )
     params = {"post_logout_redirect_uri": post_logout_redirect_uri}
     if id_token:
         params["id_token_hint"] = id_token
 
-    end_session = discovery.get("end_session_endpoint") or f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/logout"
+    end_session = (
+        discovery.get("end_session_endpoint")
+        or f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/logout"
+    )
     redirect = f"{end_session}?{urlencode(params)}"
     response = RedirectResponse(url=redirect, status_code=302)
     # Remove cookies
