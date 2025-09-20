@@ -1,0 +1,267 @@
+import base64
+import hashlib
+import os
+import secrets
+from datetime import UTC, datetime, timedelta
+from typing import Annotated, Any, NotRequired, TypedDict, cast
+
+import httpx
+import jwt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+# Keycloak configuration
+KEYCLOAK_URL: str = os.getenv("KEYCLOAK_URL", "https://eigentask.com/auth")
+KEYCLOAK_REALM: str = os.getenv("KEYCLOAK_REALM", "eigentask")
+KEYCLOAK_CLIENT_ID: str = os.getenv("KEYCLOAK_CLIENT_ID", "eigentask")
+
+
+class OIDCDiscoveryDocument(TypedDict):
+    """OIDC discovery document."""
+
+    issuer: str
+    authorization_endpoint: str
+    token_endpoint: str
+    jwks_uri: str
+    userinfo_endpoint: NotRequired[str]
+    end_session_endpoint: NotRequired[str]
+
+
+class JWK(TypedDict):
+    """JWK."""
+
+    kid: str
+    kty: str
+    alg: str
+    use: str
+    n: NotRequired[str]
+    e: NotRequired[str]
+
+
+class JWKS(TypedDict):
+    """JWKS."""
+
+    keys: list[JWK]
+
+
+class TTLCache[T]:
+    """Simple in-memory TTL cache for a single value."""
+
+    def __init__(self) -> None:
+        """Initialize the cache with no value and no expiry."""
+        self.value: T | None = None
+        self.expiry: datetime | None = None
+
+    def get(self) -> T | None:
+        """Return the cached value if not expired; otherwise return None."""
+        if self.value is not None and self.expiry and datetime.now(tz=UTC) < self.expiry:
+            return self.value
+        return None
+
+    def set(self, value: T, ttl: timedelta) -> None:
+        """Set a value in the cache with a time-to-live (TTL)."""
+        self.value = value
+        self.expiry = datetime.now(tz=UTC) + ttl
+
+
+_discovery_cache: TTLCache[OIDCDiscoveryDocument] = TTLCache()
+_jwks_cache: TTLCache[JWKS] = TTLCache()
+
+security = HTTPBearer(auto_error=False)
+
+
+async def get_discovery_document() -> OIDCDiscoveryDocument:
+    """Fetch and cache the realm OIDC discovery document."""
+    cached = _discovery_cache.get()
+    if cached is not None:
+        return cast("OIDCDiscoveryDocument", cached)
+
+    url = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/.well-known/openid-configuration"
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=10)
+            resp.raise_for_status()
+            data = cast("OIDCDiscoveryDocument", resp.json())
+            _discovery_cache.set(data, ttl=timedelta(hours=1))
+            return data
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Unable to fetch discovery document: {exc}",
+        ) from exc
+
+
+async def get_jwks() -> JWKS:
+    """Fetch and cache JWKS for verifying tokens."""
+    cached = _jwks_cache.get()
+    if cached is not None:
+        return cast("JWKS", cached)
+
+    discovery = await get_discovery_document()
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(discovery["jwks_uri"], timeout=10)
+            resp.raise_for_status()
+            data = cast("JWKS", resp.json())
+            _jwks_cache.set(data, ttl=timedelta(hours=1))
+            return data
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Unable to fetch JWKS: {exc}",
+        ) from exc
+
+
+def get_public_key(token: str, keys: JWKS) -> str:
+    """Extract the correct public key for the token."""
+    # Decode token header to get key ID
+    unverified_header = jwt.get_unverified_header(token)
+    kid = unverified_header.get("kid")
+
+    if not kid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing key ID",
+        )
+
+    # Find the correct public key
+    for key in keys.get("keys", []):
+        if key.get("kid") == kid:
+            # Extract RSA components
+            def _b64url_to_bytes(value: str) -> bytes:
+                padding = "=" * (-len(value) % 4)
+                return base64.urlsafe_b64decode(value + padding)
+
+            n = _b64url_to_bytes(cast("str", key["n"]))
+            e = _b64url_to_bytes(cast("str", key["e"]))
+
+            # Convert to integers
+            n_int = int.from_bytes(n, "big")
+            e_int = int.from_bytes(e, "big")
+
+            # Create RSA public key
+            public_key = rsa.RSAPublicNumbers(e_int, n_int).public_key()
+
+            # Convert to PEM format
+            pem = public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+
+            return pem.decode("utf-8")
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Unable to find appropriate key",
+    )
+
+
+async def verify_token(
+    request: Request,
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(security),
+    ],
+) -> dict[str, Any]:
+    """Verify JWT token from Keycloak from Authorization header or access_token cookie."""
+    token: str | None = None
+    if credentials and credentials.scheme.lower() == "bearer":
+        token = credentials.credentials
+    if not token:
+        token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing bearer token",
+        )
+
+    try:
+        jwks = await get_jwks()
+        public_key_pem = get_public_key(token, jwks)
+        discovery = await get_discovery_document()
+        payload = jwt.decode(
+            token,
+            public_key_pem,
+            algorithms=["RS256"],
+            audience=KEYCLOAK_CLIENT_ID,
+            issuer=discovery["issuer"],
+            options={"verify_exp": True, "verify_aud": True, "verify_iss": True},
+        )
+        return cast("dict[str, Any]", payload)
+    except jwt.ExpiredSignatureError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        ) from e
+    except jwt.InvalidTokenError as e:
+        # Decode claims without verification to help diagnose audience/issuer mismatches
+        unverified: dict[str, Any] | None
+        try:
+            unverified = cast(
+                "dict[str, Any]",
+                jwt.decode(
+                    token,
+                    options={
+                        "verify_signature": False,
+                        "verify_aud": False,
+                        "verify_exp": False,
+                        "verify_iss": False,
+                    },
+                ),
+            )
+        except jwt.PyJWTError:
+            unverified = None
+
+        aud = unverified.get("aud") if isinstance(unverified, dict) else None
+        azp = unverified.get("azp") if isinstance(unverified, dict) else None
+        iss = unverified.get("iss") if isinstance(unverified, dict) else None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {e!s} | token_aud={aud} expected_aud={KEYCLOAK_CLIENT_ID} azp={azp} iss={iss}",
+        ) from e
+
+
+def get_current_user(
+    payload: Annotated[
+        dict[str, Any],
+        Depends(verify_token),
+    ],
+) -> dict[str, Any]:
+    """Extract user information from verified token."""
+    return {
+        "sub": payload.get("sub"),
+        "preferred_username": payload.get("preferred_username"),
+        "email": payload.get("email"),
+        "name": payload.get("name"),
+        "roles": payload.get("realm_access", {}).get("roles", []),
+    }
+
+
+def _generate_pkce_pair() -> tuple[str, str]:
+    verifier_bytes = secrets.token_urlsafe(64)
+    verifier = verifier_bytes[:128]
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest()).decode("utf-8").rstrip("=")
+    return verifier, challenge
+
+
+async def maybe_get_current_user(
+    request: Request,
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(security),
+    ],
+) -> dict[str, Any] | None:
+    """Best-effort dependency that returns the user or None if unauthenticated.
+
+    Swallows only 401 Unauthorized to enable non-erroring auth checks (e.g., /auth/status).
+    Other HTTPExceptions are re-raised.
+    """
+    try:
+        payload = await verify_token(request, credentials)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
+    return get_current_user(payload)

@@ -12,6 +12,8 @@ dependencies = [
     "itsdangerous>=2.2.0",
     "pyjwt>=2.10.1",
     "uvicorn>=0.35.0",
+    "pydantic>=2.11.9",
+    "pydantic-settings>=2.10.1",
 ]
 
 [dependency-groups]
@@ -20,5 +22,15 @@ dev = [
     "ty>=0.0.1a20",
 ]
 
-[tool.ty]
-root = ["./api"]
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+ignore = [
+    "D100",
+    "D203",
+    "D213",
+]
