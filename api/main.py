@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -23,7 +22,7 @@ app.add_middleware(
 # CORS for frontend dev server to call protected endpoints with credentials
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(settings.frontend_origin)],
+    allow_origins=[str(settings.frontend_origin).removesuffix("/")],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
