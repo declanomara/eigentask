@@ -2,6 +2,7 @@ import base64
 import hashlib
 import os
 import secrets
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any, NotRequired, TypedDict, cast
 
@@ -11,6 +12,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app.config import get_settings
+from app.core.session import get_tokens, is_expired, set_tokens
+from app.core.types import RefreshResult
 
 # Keycloak configuration
 KEYCLOAK_URL: str = os.getenv("KEYCLOAK_URL", "https://eigentask.com/auth")
@@ -70,6 +75,7 @@ _discovery_cache: TTLCache[OIDCDiscoveryDocument] = TTLCache()
 _jwks_cache: TTLCache[JWKS] = TTLCache()
 
 security = HTTPBearer(auto_error=False)
+settings = get_settings()
 
 
 async def get_discovery_document() -> OIDCDiscoveryDocument:
@@ -158,6 +164,37 @@ def get_public_key(token: str, keys: JWKS) -> str:
     )
 
 
+def _get_bearer_token(credentials: HTTPAuthorizationCredentials | None) -> str | None:
+    """Return bearer token from Authorization header, if present."""
+    if credentials and credentials.scheme.lower() == "bearer":
+        return credentials.credentials
+    return None
+
+
+async def _get_session_access_token(request: Request) -> str | None:
+    """Retrieve an access token from the Redis-backed session, refreshing if needed.
+
+    Returns the access token string if available and valid; otherwise None.
+    """
+    sid = request.cookies.get(settings.session_cookie_name)
+    if not sid:
+        return None
+
+    r = request.app.state.redis
+    stored = await get_tokens(r, sid)
+    if not stored:
+        return None
+
+    if is_expired(stored):
+        refreshed = await refresh_tokens_via_oidc(stored.get("refresh_token", ""))
+        if not refreshed:
+            return None
+        await set_tokens(r, sid, refreshed)
+        return refreshed.get("access_token")
+
+    return stored.get("access_token")
+
+
 async def verify_token(
     request: Request,
     credentials: Annotated[
@@ -165,17 +202,10 @@ async def verify_token(
         Depends(security),
     ],
 ) -> dict[str, Any]:
-    """Verify JWT token from Keycloak from Authorization header or access_token cookie."""
-    token: str | None = None
-    if credentials and credentials.scheme.lower() == "bearer":
-        token = credentials.credentials
+    """Verify JWT token using Authorization header or Redis-backed session."""
+    token = _get_bearer_token(credentials) or await _get_session_access_token(request)
     if not token:
-        token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing bearer token",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
 
     try:
         jwks = await get_jwks()
@@ -265,3 +295,47 @@ async def maybe_get_current_user(
             return None
         raise
     return get_current_user(payload)
+
+
+async def refresh_tokens_via_oidc(refresh_token: str) -> RefreshResult | None:
+    """Refresh access (and possibly refresh/id) tokens via the OIDC token endpoint.
+
+    Returns a new token bundle on success, or None on failure.
+    """
+    if not refresh_token:
+        return None
+
+    discovery = await get_discovery_document()
+
+    data: dict[str, str] = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": settings.keycloak_client_id,
+    }
+    auth: httpx.Auth | None = None
+    if settings.keycloak_client_secret:
+        auth = httpx.BasicAuth(settings.keycloak_client_id, settings.keycloak_client_secret)
+        data.pop("client_id", None)
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            discovery["token_endpoint"],
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            auth=auth,
+            timeout=15,
+        )
+
+    if resp.status_code != httpx.codes.OK:
+        return None
+
+    payload = resp.json()
+    result: RefreshResult = {
+        "access_token": payload["access_token"],
+        "expires_at": int(time.time()) + int(payload.get("expires_in", 300)),
+    }
+    if "refresh_token" in payload:
+        result["refresh_token"] = payload["refresh_token"]
+    if "id_token" in payload:
+        result["id_token"] = payload["id_token"]
+    return result

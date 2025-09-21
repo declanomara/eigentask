@@ -15,6 +15,13 @@ from app.core.auth import (
     maybe_get_current_user,
 )
 from app.core.helpers import _sanitize_return_to
+from app.core.session import (
+    StoredTokens,
+    delete_session,
+    get_tokens,
+    new_sid,
+    set_tokens,
+)
 
 if TYPE_CHECKING:
     from app.core.types import TokenResponse
@@ -99,24 +106,31 @@ async def oidc_callback(request: Request, code: str, state: str) -> RedirectResp
     # Determine where to send the user after login
     post_login_redirect = request.session.pop("post_login_redirect", None)
     redirect_target = _sanitize_return_to(post_login_redirect)
+    # Create opaque session id and persist tokens server-side (Redis)
     response = RedirectResponse(url=redirect_target, status_code=302)
-    # Set HttpOnly cookie for API to read
+    token_bundle: StoredTokens = {
+        "access_token": tokens["access_token"],
+        "expires_at": int(__import__("time").time()) + int(tokens.get("expires_in", 300)),
+    }
+    if "refresh_token" in tokens:
+        token_bundle["refresh_token"] = cast("str", tokens["refresh_token"])
+    if "id_token" in tokens:
+        token_bundle["id_token"] = cast("str", tokens["id_token"])
+
+    sid = new_sid()
+    r = request.app.state.redis
+    await set_tokens(r, sid, token_bundle)
+
+    # Set only the opaque session id as httpOnly cookie
     cookie_params = {
         "httponly": True,
         "secure": settings.cookie_secure,
         "samesite": "lax",
         "path": "/",
     }
-
     if settings.cookie_domain:
         cookie_params["domain"] = settings.cookie_domain
-    if "access_token" in tokens:
-        response.set_cookie("access_token", tokens["access_token"], **cookie_params)
-    if "refresh_token" in tokens:
-        response.set_cookie("refresh_token", tokens["refresh_token"], **cookie_params)
-    if "id_token" in tokens:
-        response.set_cookie("id_token", cast("str", tokens["id_token"]), **cookie_params)
-
+    response.set_cookie(settings.session_cookie_name, sid, **cookie_params)
     return response
 
 
@@ -124,16 +138,22 @@ async def oidc_callback(request: Request, code: str, state: str) -> RedirectResp
 async def logout(request: Request) -> RedirectResponse:
     """Clear cookies and redirect to Keycloak end-session if available."""
     discovery = await get_discovery_document()
-    id_token = request.cookies.get("id_token")
+    # Retrieve id_token from server-side session if available
+    sid = request.cookies.get(settings.session_cookie_name)
+    r = request.app.state.redis if sid else None
+    stored = await get_tokens(r, sid) if r and sid else None
+    id_token = cast("str | None", stored.get("id_token") if stored else None)
     post_logout_redirect_uri = request.query_params.get("return_to", str(settings.frontend_origin))
 
     # If we don't have an id_token, skip calling the IdP end-session endpoint.
     # Some providers (e.g., Keycloak) require id_token_hint and will error otherwise.
     if not id_token:
         response = RedirectResponse(url=post_logout_redirect_uri, status_code=302)
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-        response.delete_cookie("id_token")
+        # Clear server-side session and the sid cookie if present
+        if sid:
+            r = request.app.state.redis
+            await delete_session(r, sid)
+            response.delete_cookie(settings.session_cookie_name)
         return response
 
     params = {"post_logout_redirect_uri": post_logout_redirect_uri}
@@ -145,10 +165,11 @@ async def logout(request: Request) -> RedirectResponse:
     )
     redirect = f"{end_session}?{urlencode(params)}"
     response = RedirectResponse(url=redirect, status_code=302)
-    # Remove cookies
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("id_token")
+    # Remove server-side session and sid cookie
+    if sid:
+        r = request.app.state.redis
+        await delete_session(r, sid)
+        response.delete_cookie(settings.session_cookie_name)
     return response
 
 

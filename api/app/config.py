@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     cookie_domain: str | None = None
     cookie_secure: bool = False
 
+    # Redis / Sessions
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    session_cookie_name: str = os.getenv("SESSION_COOKIE_NAME", "sid")
+    redis_session_ttl_seconds: int = int(os.getenv("SESSION_TTL_SECONDS", str(60 * 60 * 24 * 7)))
+    redis_session_prefix: str = os.getenv("SESSION_PREFIX", "sess:")
+
 
 @lru_cache(1)
 def get_settings() -> Settings:

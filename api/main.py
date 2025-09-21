@@ -1,5 +1,8 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from redis import asyncio as redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_settings
@@ -7,7 +10,20 @@ from app.routers import auth as auth_router
 from app.routers import root as root_router
 from app.routers import users as users_router
 
-app = FastAPI(title="Eigentask API", description="API for Eigentask")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> None:
+    """Initialize shared state on startup and cleanup on shutdown."""
+    # Initialize shared Redis client
+    app.state.redis = redis.from_url(settings.redis_url, decode_responses=True)
+    try:
+        yield
+    finally:
+        # Close Redis client gracefully on shutdown
+        await app.state.redis.aclose()
+
+
+app = FastAPI(title="Eigentask API", description="API for Eigentask", lifespan=lifespan)
 
 settings = get_settings()
 
