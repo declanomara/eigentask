@@ -1,6 +1,5 @@
 import base64
 import hashlib
-import os
 import secrets
 import time
 from datetime import UTC, datetime, timedelta
@@ -17,10 +16,7 @@ from app.config import get_settings
 from app.core.session import get_tokens, is_expired, set_tokens
 from app.core.types import RefreshResult
 
-# Keycloak configuration
-KEYCLOAK_URL: str = os.getenv("KEYCLOAK_URL", "https://eigentask.com/auth")
-KEYCLOAK_REALM: str = os.getenv("KEYCLOAK_REALM", "eigentask")
-KEYCLOAK_CLIENT_ID: str = os.getenv("KEYCLOAK_CLIENT_ID", "eigentask")
+settings = get_settings()
 
 
 class OIDCDiscoveryDocument(TypedDict):
@@ -84,7 +80,7 @@ async def get_discovery_document() -> OIDCDiscoveryDocument:
     if cached is not None:
         return cast("OIDCDiscoveryDocument", cached)
 
-    url = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/.well-known/openid-configuration"
+    url = f"{settings.keycloak_url}/realms/{settings.keycloak_realm}/.well-known/openid-configuration"
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=10)
@@ -215,7 +211,7 @@ async def verify_token(
             token,
             public_key_pem,
             algorithms=["RS256"],
-            audience=KEYCLOAK_CLIENT_ID,
+            audience=settings.keycloak_client_id,
             issuer=discovery["issuer"],
             options={"verify_exp": True, "verify_aud": True, "verify_iss": True},
         )
@@ -226,30 +222,9 @@ async def verify_token(
             detail="Token has expired",
         ) from e
     except jwt.InvalidTokenError as e:
-        # Decode claims without verification to help diagnose audience/issuer mismatches
-        unverified: dict[str, Any] | None
-        try:
-            unverified = cast(
-                "dict[str, Any]",
-                jwt.decode(
-                    token,
-                    options={
-                        "verify_signature": False,
-                        "verify_aud": False,
-                        "verify_exp": False,
-                        "verify_iss": False,
-                    },
-                ),
-            )
-        except jwt.PyJWTError:
-            unverified = None
-
-        aud = unverified.get("aud") if isinstance(unverified, dict) else None
-        azp = unverified.get("azp") if isinstance(unverified, dict) else None
-        iss = unverified.get("iss") if isinstance(unverified, dict) else None
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {e!s} | token_aud={aud} expected_aud={KEYCLOAK_CLIENT_ID} azp={azp} iss={iss}",
+            detail=f"Invalid token: {e!s}",
         ) from e
 
 
