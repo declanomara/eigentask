@@ -25,3 +25,5 @@ services:
 
 volumes:
   keycloak_db_data:
+    external: true
+    name: keycloak_db_data
