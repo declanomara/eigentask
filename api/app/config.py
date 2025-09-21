@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     backend_origin: HttpUrl = "http://localhost:8000"
 
     # OIDC
-    keycloak_url: HttpUrl = "https://eigentask.com/auth"
+    keycloak_url: HttpUrl = "https://auth.eigentask.com"
     keycloak_realm: str = "eigentask"
     keycloak_client_id: str = "eigentask"
     keycloak_client_secret: str | None = None
