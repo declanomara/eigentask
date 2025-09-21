@@ -6,7 +6,14 @@ const API_URL = env.API_ORIGIN ?? 'http://localhost:8000';
 export const load: PageServerLoad = async ({ fetch, url, request }) => {
   try {
     const endpoint = `${API_URL}/tasks`;
-    const res = await fetch(endpoint, { credentials: 'include' });
+    const cookie = request.headers.get('cookie') ?? '';
+    const res = await fetch(endpoint, {
+      // Explicitly forward the browser's cookies to the API (cross-origin SSR fetch)
+      headers: {
+        cookie,
+        accept: 'application/json'
+      }
+    });
     if (!res.ok) {
       console.error('Upstream responded non-OK', {
         endpoint,
