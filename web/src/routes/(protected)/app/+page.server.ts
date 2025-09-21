@@ -1,4 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
+import { redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
 const API_URL = (env.API_ORIGIN ?? 'http://localhost:8000').replace(/\/+$/, '');
@@ -50,7 +51,8 @@ export const actions: Actions = {
       if (!res.ok) {
         return { success: false, error: `Create failed: ${res.status} ${res.statusText}` };
       }
-      return { success: true };
+      // PRG pattern to avoid resubmission on refresh
+      throw redirect(303, '/app');
     } catch (e: any) {
       return { success: false, error: e?.message || String(e) };
     }
@@ -75,7 +77,8 @@ export const actions: Actions = {
       if (!res.ok && res.status !== 204) {
         return { success: false, error: `Delete failed: ${res.status} ${res.statusText}` };
       }
-      return { success: true };
+      // PRG pattern
+      throw redirect(303, '/app');
     } catch (e: any) {
       return { success: false, error: e?.message || String(e) };
     }
