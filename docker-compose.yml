@@ -1,0 +1,27 @@
+services:
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-db
+    env_file:
+      - /etc/eigentask/keycloak-db.env
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.3
+    container_name: keycloak
+    env_file:
+      - /etc/eigentask/keycloak.env
+
+    command: ["start", "--http-enabled=true"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - /etc/eigentask/themes:/opt/keycloak/themes
+    depends_on:
+      - keycloak-db
+    restart: unless-stopped
+
+volumes:
+  keycloak_db_data:
