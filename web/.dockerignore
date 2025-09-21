@@ -1,0 +1,22 @@
+# Node
+node_modules/
+.npmrc
+
+# SvelteKit / Vite
+.svelte-kit/
+.vite/
+dist/
+build/
+*.log
+
+# VCS / IDE
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+.DS_Store
+
+# Env files
+.env
+*.env

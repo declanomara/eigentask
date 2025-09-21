@@ -1,0 +1,33 @@
+# Python caches and venvs
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+venv/
+.env
+*.env
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# VCS / IDE
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Misc
+node_modules/

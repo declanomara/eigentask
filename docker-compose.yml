@@ -23,7 +23,52 @@ services:
       - keycloak-db
     restart: unless-stopped
 
+  # --- App stack ---
+  app-db:
+    image: postgres:16-alpine
+    container_name: app-db
+    env_file:
+      - /etc/eigentask/app-db.env
+    volumes:
+      - app_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: eigentask-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+    container_name: eigentask-api
+    env_file:
+      - /etc/eigentask/api.env
+    depends_on:
+      - app-db
+      - redis
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+    container_name: eigentask-web
+    env_file:
+      - /etc/eigentask/web.env
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
 volumes:
   keycloak_db_data:
     external: true
     name: keycloak_db_data
+  app_db_data:
+  redis_data:
