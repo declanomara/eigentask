@@ -80,7 +80,7 @@ async def get_discovery_document() -> OIDCDiscoveryDocument:
     if cached is not None:
         return cast("OIDCDiscoveryDocument", cached)
 
-    url = f"{settings.keycloak_url.removesuffix('/')}/realms/{settings.keycloak_realm}/.well-known/openid-configuration"
+    url = f"{str(settings.keycloak_url).removesuffix('/')}/realms/{settings.keycloak_realm}/.well-known/openid-configuration"
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=10)

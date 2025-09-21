@@ -161,7 +161,7 @@ async def logout(request: Request) -> RedirectResponse:
 
     end_session = (
         discovery.get("end_session_endpoint")
-        or f"{settings.keycloak_url.removesuffix('/')}/realms/{settings.keycloak_realm}/protocol/openid-connect/logout"
+        or f"{str(settings.keycloak_url).removesuffix('/')}/realms/{settings.keycloak_realm}/protocol/openid-connect/logout"
     )
     redirect = f"{end_session}?{urlencode(params)}"
     response = RedirectResponse(url=redirect, status_code=302)
