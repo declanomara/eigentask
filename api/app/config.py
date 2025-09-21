@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     redis_session_ttl_seconds: int = int(os.getenv("SESSION_TTL_SECONDS", str(60 * 60 * 24 * 7)))
     redis_session_prefix: str = os.getenv("SESSION_PREFIX", "sess:")
 
+    # PostgreSQL
+    database_url: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/eigentask")
+
 
 @lru_cache(1)
 def get_settings() -> Settings:

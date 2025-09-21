@@ -5,9 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from redis import asyncio as redis
 from starlette.middleware.sessions import SessionMiddleware
 
+import app.models
 from app.config import get_settings
+from app.core.db import Base, engine
 from app.routers import auth as auth_router
 from app.routers import root as root_router
+from app.routers import tasks as tasks_router
 from app.routers import users as users_router
 
 
@@ -16,6 +19,9 @@ async def lifespan(app: FastAPI) -> None:
     """Initialize shared state on startup and cleanup on shutdown."""
     # Initialize shared Redis client
     app.state.redis = redis.from_url(settings.redis_url, decode_responses=True)
+    # Create database tables if they do not exist (no Alembic yet)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     try:
         yield
     finally:
@@ -48,3 +54,4 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(root_router.router)
+app.include_router(tasks_router.router)
