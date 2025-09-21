@@ -3,79 +3,59 @@ import { env } from '$env/dynamic/private';
 
 const API_URL = env.API_ORIGIN ?? 'http://localhost:8000';
 
-export const load: PageServerLoad = async ({ fetch, url, request }) => {
-  try {
-    // Call the canonical endpoint with trailing slash to avoid 307 redirect stripping headers
-    const endpoint = `${API_URL}/tasks/`;
-    const cookie = request.headers.get('cookie') ?? '';
+export const load: PageServerLoad = async ({ fetch, request }) => {
+  const cookie = request.headers.get('cookie') ?? '';
+  const host = request.headers.get('host') ?? '';
 
-    // Diagnostics about incoming request
-    const host = request.headers.get('host');
-    console.info('SSR load diagnostics', {
+  const probe = async (fullUrl: string) => {
+    const out: Record<string, unknown> = {
+      requested: fullUrl,
+      api_origin: API_URL,
+      host
+    };
+    try {
+      let res = await fetch(fullUrl, { headers: { cookie, accept: 'application/json' } });
+      if ([301, 302, 303, 307, 308].includes(res.status)) {
+        const loc = res.headers.get('location');
+        out.redirected = true;
+        out.location = loc;
+        if (loc) {
+          const absolute = loc.startsWith('http') ? loc : new URL(loc, API_URL).toString();
+          res = await fetch(absolute, { headers: { cookie, accept: 'application/json' } });
+        }
+      }
+      out.status = res.status;
+      out.statusText = res.statusText;
+      out.final_url = res.url;
+      out.headers = Array.from(res.headers.entries());
+      try {
+        const text = await res.clone().text();
+        out.bodyText = text;
+        try {
+          out.bodyJson = JSON.parse(text);
+        } catch {}
+      } catch (e) {
+        out.readError = (e as any)?.message || String(e);
+      }
+    } catch (e) {
+      out.error = (e as any)?.message || String(e);
+      out.stack = (e as any)?.stack;
+    }
+    return out;
+  };
+
+  return {
+    diagnostics: {
       page: '/app',
       host,
       api_origin: API_URL,
       cookie_present: cookie.length > 0,
       cookie_length: cookie.length,
       cookie_has_sid: /(^|;\s*)sid=/.test(cookie)
-    });
-
-    // Probe auth status with same cookie
-    try {
-      const statusRes = await fetch(`${API_URL}/auth/status`, {
-        headers: { cookie, accept: 'application/json' }
-      });
-      const statusText = await statusRes.text();
-      console.info('Auth status probe', {
-        endpoint: `${API_URL}/auth/status`,
-        status: statusRes.status,
-        body: statusText
-      });
-    } catch (probeErr: unknown) {
-      console.error('Auth status probe failed', {
-        endpoint: `${API_URL}/auth/status`,
-        error: (probeErr as any)?.message || String(probeErr)
-      });
+    },
+    probe_details: {
+      auth_status: await probe(`${API_URL}/auth/status`),
+      tasks: await probe(`${API_URL}/tasks/`)
     }
-
-    let res = await fetch(endpoint, {
-      // Explicitly forward the browser's cookies to the API (cross-origin SSR fetch)
-      headers: {
-        cookie,
-        accept: 'application/json'
-      }
-    });
-
-    // If some proxy still redirects, follow manually to preserve headers
-    if (res.status === 301 || res.status === 302 || res.status === 303 || res.status === 307 || res.status === 308) {
-      const loc = res.headers.get('location');
-      console.warn('Upstream redirected, refetching with headers', { from: endpoint, to: loc, status: res.status });
-      if (loc) {
-        const absolute = loc.startsWith('http') ? loc : new URL(loc, API_URL).toString();
-        res = await fetch(absolute, {
-          headers: { cookie, accept: 'application/json' }
-        });
-      }
-    }
-
-    if (!res.ok) {
-      console.error('Upstream responded non-OK', {
-        endpoint,
-        status: res.status,
-        statusText: res.statusText
-      });
-    }
-    const tasks = res.ok ? await res.json() : [];
-    return { tasks };
-  } catch (err: unknown) {
-    const errObj = err as any;
-    console.error('Upstream fetch failed', {
-      api_origin: API_URL,
-      path: '/tasks',
-      method: 'GET',
-      error: errObj?.message || String(errObj),
-      stack: errObj?.stack
-    });
-    throw errObj;
-  }
+  } satisfies Record<string, unknown>;
 };
