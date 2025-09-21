@@ -5,7 +5,8 @@ const API_URL = env.API_ORIGIN ?? 'http://localhost:8000';
 
 export const load: PageServerLoad = async ({ fetch, url, request }) => {
   try {
-    const endpoint = `${API_URL}/tasks`;
+    // Call the canonical endpoint with trailing slash to avoid 307 redirect stripping headers
+    const endpoint = `${API_URL}/tasks/`;
     const cookie = request.headers.get('cookie') ?? '';
 
     // Diagnostics about incoming request
@@ -37,13 +38,26 @@ export const load: PageServerLoad = async ({ fetch, url, request }) => {
       });
     }
 
-    const res = await fetch(endpoint, {
+    let res = await fetch(endpoint, {
       // Explicitly forward the browser's cookies to the API (cross-origin SSR fetch)
       headers: {
         cookie,
         accept: 'application/json'
       }
     });
+
+    // If some proxy still redirects, follow manually to preserve headers
+    if (res.status === 301 || res.status === 302 || res.status === 303 || res.status === 307 || res.status === 308) {
+      const loc = res.headers.get('location');
+      console.warn('Upstream redirected, refetching with headers', { from: endpoint, to: loc, status: res.status });
+      if (loc) {
+        const absolute = loc.startsWith('http') ? loc : new URL(loc, API_URL).toString();
+        res = await fetch(absolute, {
+          headers: { cookie, accept: 'application/json' }
+        });
+      }
+    }
+
     if (!res.ok) {
       console.error('Upstream responded non-OK', {
         endpoint,
