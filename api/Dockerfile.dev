@@ -1,0 +1,22 @@
+# API – development Dockerfile
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install system deps if your project needs them (optional)
+# RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency list (so Docker caches installs)
+COPY pyproject.toml .
+
+# Install dependencies into container
+RUN pip install --upgrade pip && pip install -e .
+
+# Mount source code in docker-compose, so don't COPY here
+# (this allows live reload with --reload)
+
+# Expose the dev port
+EXPOSE 8000
+
+# Run FastAPI dev server with live reload
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
