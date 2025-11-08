@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 
 # Copy public environment variables from public.env
-COPY public.env .env
+COPY ./web/public.env .env
 
 # Ensure adapter-node is configured in svelte.config.js
 RUN npm run build
