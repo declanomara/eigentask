@@ -73,6 +73,6 @@
         <div class="mt-6">
             <TaskToolbar on:newTask={() => (showCreate = true)} />
         </div>
-        <TaskBoard on:taskClick={handleTaskCardClick} tasks={data.tasks} />
+        <TaskBoard tasks={data.tasks} />
     </div>
 </div>
