@@ -57,6 +57,7 @@ services:
   web:
     build:
       context: ./web
+      dockerfile: Dockerfile
     container_name: eigentask-web
     env_file:
       - /etc/eigentask/web.env
