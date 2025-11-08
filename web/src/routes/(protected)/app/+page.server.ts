@@ -3,12 +3,9 @@ import { redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
-const API_URL_INTERNAL = env.API_ORIGIN ?? "";
-const API_URL_EXTERNAL = env.PUBLIC_API_ORIGIN ?? "";
-
 const api = createApiClient({
-  internalBaseUrl: API_URL_INTERNAL,
-  externalBaseUrl: API_URL_EXTERNAL,
+  internalBaseUrl: env.API_ORIGIN ?? "API_ORIGIN NOT SET",
+  externalBaseUrl: env.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
 });
 
 export const load: PageServerLoad = async (event) => {

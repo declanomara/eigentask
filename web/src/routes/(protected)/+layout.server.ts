@@ -3,16 +3,9 @@ import type { LayoutServerLoad } from "./$types";
 import { env } from "$env/dynamic/private";
 import { createApiClient } from "$lib/apiClient";
 
-const API_URL_INTERNAL = (env.API_ORIGIN ?? "api_origin").replace(/\/+$/, "");
-
-const API_URL_EXTERNAL = (env.PUBLIC_API_ORIGIN ?? "public_api_origin").replace(
-  /\/+$/,
-  "",
-);
-
 const api = createApiClient({
-  internalBaseUrl: API_URL_INTERNAL,
-  externalBaseUrl: API_URL_EXTERNAL,
+  internalBaseUrl: env.API_ORIGIN ?? "API_ORIGIN NOT SET",
+  externalBaseUrl: env.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
 });
 
 export const load: LayoutServerLoad = async ({ url, request }) => {
