@@ -1,10 +1,15 @@
 <script lang="ts">
-    import TaskCard from "../../TaskCard.svelte";
     import { env as publicEnv } from "$env/dynamic/public";
-    import type { Task } from "$lib/apiClient";
+    import type { AuthStatus, Task } from "$lib/apiClient";
+    import Header from "$lib/components/Header.svelte";
+    import Timeline from "$lib/components/Timeline.svelte";
+    import TaskBoard from "$lib/components/TaskBoard.svelte";
+    import TaskToolbar from "$lib/components/TaskToolbar.svelte";
+    import CreateTaskModal from "$lib/components/CreateTaskModal.svelte";
 
     export let data: {
         tasks: Array<Task>;
+        auth: AuthStatus;
         error?: string;
     };
 
@@ -12,69 +17,62 @@
     const APP_URL_EXTERNAL = publicEnv.PUBLIC_APP_ORIGIN;
 
     const LOGOUT_URL = `${API_URL_EXTERNAL}/auth/logout?return_to=${encodeURIComponent(APP_URL_EXTERNAL + "/")}`;
+    function handleLogout() {
+        window.location.href = LOGOUT_URL;
+    }
 
     let showCreate = false;
 </script>
 
-<div style="margin: 1rem 0; display: flex; gap: 0.5rem;">
-    <a href={LOGOUT_URL}><button>Logout</button></a>
-    <a href="/settings"><button>Settings</button></a>
-    <button
-        on:click={() => (showCreate = !showCreate)}
-        title="Create task"
-        aria-label="Create task">+ New</button
-    >
-</div>
+<Header userName={data.auth.user?.name} onLogout={handleLogout} />
 
 {#if data?.error}
     <p style="color: crimson;">Error loading tasks: {data.error}</p>
 {/if}
 
-{#if showCreate}
+<!-- The Create form lives in the modal -->
+<CreateTaskModal
+    open={showCreate}
+    title="Create Task"
+    on:close={() => (showCreate = false)}
+>
     <form
         method="POST"
         action="?/create"
-        style="margin: 1rem 0; display: grid; gap: 0.5rem; max-width: 480px;"
+        class="grid grid-cols-1 gap-4 w-full max-w-md mx-auto p-2"
     >
-        <input name="title" placeholder="Task title" required />
+        <input
+            name="title"
+            placeholder="Task title"
+            required
+            class="border rounded px-2 py-1"
+        />
         <textarea
             name="description"
             placeholder="Description (optional)"
             rows="3"
+            class="border rounded px-2 py-1"
         ></textarea>
-        <div style="display:flex; gap: .5rem;">
-            <button type="submit">Create</button>
-            <button type="button" on:click={() => (showCreate = false)}
-                >Cancel</button
+        <div class="flex gap-2">
+            <button
+                type="submit"
+                class="px-4 py-2 bg-blue-500 text-white rounded">Create</button
+            >
+            <button
+                type="button"
+                class="px-4 py-2"
+                on:click={() => (showCreate = false)}>Cancel</button
             >
         </div>
     </form>
-{/if}
+</CreateTaskModal>
 
-{#if data?.tasks?.length}
-    <div>
-        {#each data.tasks as t}
-            <div
-                style="display:flex; align-items:flex-start; gap:.5rem; margin-bottom: .75rem;"
-            >
-                <TaskCard
-                    id={t.id}
-                    title={t.title}
-                    description={t.description}
-                />
-                <form method="POST" action="?/delete" style="margin: 0;">
-                    <input type="hidden" name="id" value={t.id} />
-                    <button
-                        type="submit"
-                        title="Delete task"
-                        aria-label="Delete task"
-                        style="background: transparent; border: 1px solid #ddd; padding: .25rem .5rem; cursor: pointer;"
-                        >🗑️</button
-                    >
-                </form>
-            </div>
-        {/each}
+<div class="flex justify-center">
+    <div class="flex flex-col w-full max-w-7xl px-4">
+        <Timeline />
+        <div class="mt-6">
+            <TaskToolbar on:newTask={() => (showCreate = true)} />
+        </div>
+        <TaskBoard on:taskClick={handleTaskCardClick} tasks={data.tasks} />
     </div>
-{:else}
-    <p>No tasks yet. Create one!</p>
-{/if}
+</div>

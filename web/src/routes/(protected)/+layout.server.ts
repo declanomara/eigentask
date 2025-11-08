@@ -34,5 +34,5 @@ export const load: LayoutServerLoad = async ({ url, request }) => {
       `${API_URL_EXTERNAL}/auth/login?return_to=${encodeURIComponent(url.href)}`,
     );
   }
-  return res.auth;
+  return { auth: res.auth };
 };

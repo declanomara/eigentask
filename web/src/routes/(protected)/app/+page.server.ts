@@ -2,7 +2,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { PUBLIC_API_ORIGIN } from "$env/dynamic/public";
-import { createApiClient } from "$lib/apiClient";
+import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
 const API_URL_INTERNAL = (env.API_ORIGIN ?? "http://localhost:8000").replace(
   /\/+$/,
@@ -18,8 +18,12 @@ const api = createApiClient({
   externalBaseUrl: API_URL_EXTERNAL,
 });
 
-export const load: PageServerLoad = async ({ url, request }) => {
-  const cookie = request.headers.get("cookie") ?? "";
+export const load: PageServerLoad = async (event) => {
+  // Pull auth data from layout
+  const parent = await event.parent();
+  const auth = (parent?.auth ?? undefined) as AuthStatus | undefined;
+
+  const cookie = event.request.headers.get("cookie") ?? "";
   const res = await api.getTasks(cookie);
 
   // If the internal API call failed, surface an error (no automatic redirect here)
@@ -28,7 +32,7 @@ export const load: PageServerLoad = async ({ url, request }) => {
   }
 
   const tasks = res.tasks;
-  return { tasks };
+  return { tasks, auth, error: res.ok ? null : res.error };
 };
 
 export const actions: Actions = {
@@ -65,6 +69,27 @@ export const actions: Actions = {
     }
 
     // PRG: redirect after successful deletion
+    throw redirect(303, "/app");
+  },
+  edit: async ({ request, fetch }) => {
+    const cookie = request.headers.get("cookie") ?? "";
+    const form = await request.formData();
+    const id = Number(form.get("id") ?? "");
+    const title = String(form.get("title") ?? "").trim() || undefined;
+    const description = String(form.get("description") ?? "") || undefined;
+    if (!id) {
+      return { success: false, error: "Invalid id" };
+    }
+    if (!title && !description) {
+      return { success: false, error: "Title or description is required" };
+    }
+
+    // Use apiClient to update
+    const res = await api.updateTask(id, { title, description }, cookie);
+    if (!res.ok) {
+      return { success: false, error: res.error ?? "Update failed" };
+    }
+    // PRG: redirect after success
     throw redirect(303, "/app");
   },
 };

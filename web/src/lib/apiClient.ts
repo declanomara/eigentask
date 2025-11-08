@@ -143,6 +143,32 @@ export function createApiClient(config: ApiClientConfig) {
       const text = await res.text().catch(() => "");
       return { ok: false, status, error: `Create failed: ${status} ${text}` };
     },
+    updateTask: async (
+      id: number,
+      input: UpdateTaskRequest,
+      cookie?: string,
+    ): Promise<UpdateTaskResult> => {
+      const res = await request(
+        `${tasksEndpoint}${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Connection: "close",
+          },
+          body: JSON.stringify(input),
+        },
+        cookie,
+      );
+      const status = res.status;
+      if (res.ok) {
+        const task = (await res.json()) as Task;
+        return { ok: true, task, status };
+      }
+      const text = await res.text().catch(() => "");
+      return { ok: false, status, error: `Update failed: ${status} ${text}` };
+    },
 
     deleteTask: async (
       id: number,
