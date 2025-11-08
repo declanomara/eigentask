@@ -4,6 +4,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# Copy public environment variables from public.env
+COPY public.env .env
+
 # Ensure adapter-node is configured in svelte.config.js
 RUN npm run build
 
