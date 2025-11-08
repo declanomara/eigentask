@@ -6,7 +6,7 @@ import { createApiClient } from "$lib/apiClient";
 
 const api = createApiClient({
   internalBaseUrl: privateEnv.API_ORIGIN ?? "API_ORIGIN NOT SET",
-  externalBaseUrl: publicEnv.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
+  externalBaseUrl: publicEnv.PUBLIC_API_ORIGIN ?? "PUBLIC_API_ORIGIN NOT SET",
 });
 
 export const load: LayoutServerLoad = async ({ url, request }) => {
