@@ -3,14 +3,12 @@ import type { LayoutServerLoad } from "./$types";
 import { env } from "$env/dynamic/private";
 import { createApiClient } from "$lib/apiClient";
 
-const API_URL_INTERNAL = (env.API_ORIGIN ?? "http://localhost:8000").replace(
+const API_URL_INTERNAL = (env.API_ORIGIN ?? "api_origin").replace(/\/+$/, "");
+
+const API_URL_EXTERNAL = (env.PUBLIC_API_ORIGIN ?? "public_api_origin").replace(
   /\/+$/,
   "",
 );
-
-const API_URL_EXTERNAL = (
-  env.PUBLIC_API_ORIGIN ?? "http://localhost:8000"
-).replace(/\/+$/, "");
 
 const api = createApiClient({
   internalBaseUrl: API_URL_INTERNAL,
