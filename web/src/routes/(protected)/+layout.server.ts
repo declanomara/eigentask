@@ -17,13 +17,13 @@ export const load: LayoutServerLoad = async ({ url, request }) => {
   if (!res.ok) {
     throw redirect(
       307,
-      `${API_URL_EXTERNAL}/auth/login?return_to=${encodeURIComponent(url.href)}`,
+      `${api.externalBaseUrl}/auth/login?return_to=${encodeURIComponent(url.href)}`,
     );
   }
   if (!res.auth?.authenticated) {
     throw redirect(
       307,
-      `${API_URL_EXTERNAL}/auth/login?return_to=${encodeURIComponent(url.href)}`,
+      `${api.externalBaseUrl}/auth/login?return_to=${encodeURIComponent(url.href)}`,
     );
   }
   return { auth: res.auth };
