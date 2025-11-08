@@ -1,29 +1,23 @@
 <script lang="ts">
     import TaskCard from "../../TaskCard.svelte";
+    import { env as publicEnv } from "$env/dynamic/public";
+    import type { Task } from "$lib/apiClient";
+
     export let data: {
-        tasks: Array<{
-            id: number;
-            title: string;
-            description?: string | null;
-        }>;
+        tasks: Array<Task>;
         error?: string;
     };
-    import { env as publicEnv } from "$env/dynamic/public";
 
-    // Build-time public envs. Provide sensible fallbacks for dev.
-    const API_URL = publicEnv.PUBLIC_API_ORIGIN || "http://localhost:8000";
-    const appOrigin =
-        publicEnv.PUBLIC_APP_ORIGIN ||
-        (typeof window !== "undefined"
-            ? window.location.origin
-            : "http://localhost:5173");
-    const logoutUrl = `${API_URL}/auth/logout?return_to=${encodeURIComponent(appOrigin + "/")}`;
+    const API_URL_EXTERNAL = publicEnv.PUBLIC_API_ORIGIN;
+    const APP_URL_EXTERNAL = publicEnv.PUBLIC_APP_ORIGIN;
+
+    const LOGOUT_URL = `${API_URL_EXTERNAL}/auth/logout?return_to=${encodeURIComponent(APP_URL_EXTERNAL + "/")}`;
 
     let showCreate = false;
 </script>
 
 <div style="margin: 1rem 0; display: flex; gap: 0.5rem;">
-    <a href={logoutUrl}><button>Logout</button></a>
+    <a href={LOGOUT_URL}><button>Logout</button></a>
     <a href="/settings"><button>Settings</button></a>
     <button
         on:click={() => (showCreate = !showCreate)}
