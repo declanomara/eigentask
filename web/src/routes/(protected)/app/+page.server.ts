@@ -5,8 +5,8 @@ import { env as publicEnv } from "$env/dynamic/public";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
 const api = createApiClient({
-  internalBaseUrl: privateEnv.API_ORIGIN ?? "API_ORIGIN NOT SET",
-  externalBaseUrl: publicEnv.PUBLIC_API_ORIGIN ?? "PUBLIC_API_ORIGIN NOT SET",
+  internalBaseUrl: privateEnv.API_ORIGIN ?? "https://api.eigentask.com",
+  externalBaseUrl: publicEnv.PUBLIC_API_ORIGIN ?? "https://api.eigentask.com",
 });
 
 export const load: PageServerLoad = async (event) => {
