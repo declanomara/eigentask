@@ -5,11 +5,8 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 
-# Copy public environment variables from public.env
-COPY ./web/public.env .env
-
 # Ensure adapter-node is configured in svelte.config.js
-RUN npm run build
+RUN export $(grep -v '^#' ./public.env | xargs) && npm run build
 
 FROM node:20-bullseye-slim
 WORKDIR /app
