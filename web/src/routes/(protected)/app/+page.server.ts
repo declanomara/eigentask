@@ -1,11 +1,12 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { env } from "$env/dynamic/private";
+import { env as privateEnv } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
 const api = createApiClient({
-  internalBaseUrl: env.API_ORIGIN ?? "API_ORIGIN NOT SET",
-  externalBaseUrl: env.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
+  internalBaseUrl: privateEnv.API_ORIGIN ?? "API_ORIGIN NOT SET",
+  externalBaseUrl: publicEnv.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
 });
 
 export const load: PageServerLoad = async (event) => {

@@ -1,11 +1,12 @@
 import { redirect } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
-import { env } from "$env/dynamic/private";
+import { env as privateEnv } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import { createApiClient } from "$lib/apiClient";
 
 const api = createApiClient({
-  internalBaseUrl: env.API_ORIGIN ?? "API_ORIGIN NOT SET",
-  externalBaseUrl: env.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
+  internalBaseUrl: privateEnv.API_ORIGIN ?? "API_ORIGIN NOT SET",
+  externalBaseUrl: publicEnv.PUBLIC_BASE_URL ?? "PUBLIC_BASE_URL NOT SET",
 });
 
 export const load: LayoutServerLoad = async ({ url, request }) => {
