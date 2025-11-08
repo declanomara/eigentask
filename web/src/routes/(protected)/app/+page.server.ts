@@ -3,12 +3,8 @@ import { redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
-const API_URL_INTERNAL = env.API_ORIGIN;
-const API_URL_EXTERNAL = env.PUBLIC_API_ORIGIN;
-
-if (!API_URL_INTERNAL || !API_URL_EXTERNAL) {
-  throw new Error("API_URL_INTERNAL or API_URL_EXTERNAL is not defined");
-}
+const API_URL_INTERNAL = env.API_ORIGIN ?? "";
+const API_URL_EXTERNAL = env.PUBLIC_API_ORIGIN ?? "";
 
 const api = createApiClient({
   internalBaseUrl: API_URL_INTERNAL,
