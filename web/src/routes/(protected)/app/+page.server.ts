@@ -3,7 +3,7 @@ import { redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
-const API_URL_INTERNAL = env.API_ORIGIN.replace(/\/+$/, "");
+const API_URL_INTERNAL = (env.API_ORIGIN ?? "").replace(/\/+$/, "");
 const API_URL_EXTERNAL = (env.PUBLIC_API_ORIGIN ?? API_URL_INTERNAL).replace(
   /\/+$/,
   "",
