@@ -1,14 +1,13 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
-import { PUBLIC_API_ORIGIN } from "$env/dynamic/public";
 import { createApiClient, type AuthStatus } from "$lib/apiClient";
 
 const API_URL_INTERNAL = (env.API_ORIGIN ?? "http://localhost:8000").replace(
   /\/+$/,
   "",
 );
-const API_URL_EXTERNAL = (PUBLIC_API_ORIGIN ?? API_URL_INTERNAL).replace(
+const API_URL_EXTERNAL = (env.PUBLIC_API_ORIGIN ?? API_URL_INTERNAL).replace(
   /\/+$/,
   "",
 );
