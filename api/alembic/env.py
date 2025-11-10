@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from alembic import context
 from app.core.db import Base
+from app.models.task import Task
 
 config = context.config
 if config.config_file_name is not None:
@@ -19,6 +20,7 @@ if db_url:
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -31,8 +33,8 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def do_run_migrations(sync_connection):
-    """This is called synchronously in run_sync to allow autogenerate."""
+def do_run_migrations(sync_connection) -> None:
+    """Call synchronously in run_sync to allow autogenerate."""
     context.configure(
         connection=sync_connection,
         target_metadata=target_metadata,
