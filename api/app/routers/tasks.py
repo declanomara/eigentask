@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,11 +13,18 @@ from app.models.task import Task
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-class TaskCreate(BaseModel):
-    """Task creation request."""
+class TaskBase(BaseModel):
+    """Base task model."""
 
+    id: int
     title: str
     description: str | None = None
+    planned_start_at: datetime | None = None
+    planned_duration: timedelta | None = None
+
+
+class TaskCreate(TaskBase):
+    """Task creation request."""
 
 
 class TaskUpdate(BaseModel):

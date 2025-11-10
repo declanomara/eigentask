@@ -1,7 +1,8 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, String, Text, func, Enum as SQLEnum
+from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -32,6 +33,11 @@ class Task(Base):
         index=True,
     )
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Task Planning
+    planned_start_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    planned_end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    planned_duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Owner's OIDC subject claim
     created_by_sub: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
