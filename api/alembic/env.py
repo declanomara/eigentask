@@ -4,9 +4,9 @@ from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
 from alembic import context
 from app.core.db import Base
-from app.models.task import Task
 
 config = context.config
 if config.config_file_name is not None:
