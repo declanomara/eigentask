@@ -1,15 +1,10 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { env as privateEnv } from "$env/dynamic/private";
-import { env as publicEnv } from "$env/dynamic/public";
-import { createApiClient, type AuthStatus } from "$lib/apiClient";
-
-const api = createApiClient({
-  internalBaseUrl: privateEnv.API_ORIGIN ?? "https://api.eigentask.com",
-  externalBaseUrl: publicEnv.PUBLIC_API_ORIGIN ?? "https://api.eigentask.com",
-});
+import { createApiClientForRequest, type AuthStatus } from "$lib/apiClient";
 
 export const load: PageServerLoad = async (event) => {
+  const api = createApiClientForRequest();
+
   // Pull auth data from layout
   const parent = await event.parent();
   const auth = (parent?.auth ?? undefined) as AuthStatus | undefined;
@@ -28,6 +23,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
   create: async ({ request, fetch }) => {
+    const api = createApiClientForRequest();
     const cookie = request.headers.get("cookie") ?? "";
     const form = await request.formData();
     const title = String(form.get("title") ?? "").trim();
@@ -46,6 +42,7 @@ export const actions: Actions = {
     throw redirect(303, "/app");
   },
   delete: async ({ request, fetch }) => {
+    const api = createApiClientForRequest();
     const cookie = request.headers.get("cookie") ?? "";
     const form = await request.formData();
     const idRaw = form.get("id");
@@ -63,6 +60,7 @@ export const actions: Actions = {
     throw redirect(303, "/app");
   },
   edit: async ({ request, fetch }) => {
+    const api = createApiClientForRequest();
     const cookie = request.headers.get("cookie") ?? "";
     const form = await request.formData();
     const id = Number(form.get("id") ?? "");
