@@ -96,6 +96,6 @@ async def update_task_for_user(
 
 
 async def delete_task_for_user(session: AsyncSession, task: Task) -> None:
-    await session.delete(task)
+    session.delete(task)
     await session.commit()
 
