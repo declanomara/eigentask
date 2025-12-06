@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { createApiClientForRequest, type AuthStatus } from "$lib/apiClient";
+import { createApiClientForRequest } from "$lib/apiClient.server";
+import type { AuthStatus } from "$lib/apiClient";
 
 export const load: PageServerLoad = async (event) => {
   const api = createApiClientForRequest();
@@ -28,11 +29,16 @@ export const actions: Actions = {
     const form = await request.formData();
     const title = String(form.get("title") ?? "").trim();
     const description = String(form.get("description") ?? "") || null;
+    const plannedDurationRaw = form.get("planned_duration");
+    const parsedPlanned = plannedDurationRaw ? Number(plannedDurationRaw) : undefined;
+    const planned_duration = Number.isFinite(parsedPlanned ?? NaN) ? parsedPlanned : undefined;
     if (!title) {
       return { success: false, error: "Title is required" };
     }
 
-    const input = description ? { title, description } : { title };
+    const input = description
+      ? { title, description, planned_duration }
+      : { title, planned_duration };
     const res = await api.createTask(input, cookie);
     if (!res.ok) {
       return { success: false, error: res.error ?? "Create failed" };

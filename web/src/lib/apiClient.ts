@@ -1,13 +1,3 @@
-import { env as privateEnv } from "$env/dynamic/private";
-import { env as publicEnv } from "$env/dynamic/public";
-
-export function createApiClientForRequest() {
-  return createApiClient({
-    internalBaseUrl: privateEnv.API_ORIGIN ?? "DEFAULT_INTERNAL_BASE_URL",
-    externalBaseUrl: publicEnv.PUBLIC_API_ORIGIN ?? "DEFAULT_EXTERNAL_BASE_URL",
-  });
-}
-
 export type ApiClientConfig = {
   internalBaseUrl: string;
   externalBaseUrl: string;
@@ -15,20 +5,39 @@ export type ApiClientConfig = {
 
 // tasks
 
+export type TaskStatus = "BACKLOG" | "PLANNED" | "COMPLETED" | "REMOVED";
+
 export type Task = {
   id: number;
   title: string;
-  description: string;
+  description: string | null;
+  status: TaskStatus;
+  due_at: string | null;
+  planned_start_at: string | null;
+  planned_end_at: string | null;
+  planned_duration: number | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type CreateTaskRequest = {
   title: string;
-  description?: string;
+  description?: string | null;
+  status?: TaskStatus;
+  due_at?: string | null;
+  planned_start_at?: string | null;
+  planned_end_at?: string | null;
+  planned_duration?: number | null;
 };
 
 export type UpdateTaskRequest = {
   title?: string;
-  description?: string;
+  description?: string | null;
+  status?: TaskStatus;
+  due_at?: string | null;
+  planned_start_at?: string | null;
+  planned_end_at?: string | null;
+  planned_duration?: number | null;
 };
 
 export type DeleteTaskRequest = {
@@ -107,7 +116,12 @@ export function createApiClient(config: ApiClientConfig) {
     if (cookie) headers.set("Cookie", cookie);
     headers.set("Accept", "application/json");
     headers.set("Connection", "close");
-    const reqInit: RequestInit = { ...init, headers, redirect: "manual" }; // don't auto-follow
+    const reqInit: RequestInit = {
+      ...init,
+      headers,
+      redirect: "manual", // don't auto-follow
+      credentials: "include",
+    };
     return await fetch(url, reqInit);
   }
 

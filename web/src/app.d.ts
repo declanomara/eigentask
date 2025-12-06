@@ -8,6 +8,13 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	namespace svelteHTML {
+		interface HTMLAttributes<T> {
+			"on:consider"?: (event: CustomEvent<any>) => void;
+			"on:finalize"?: (event: CustomEvent<any>) => void;
+		}
+	}
 }
 
 export {};

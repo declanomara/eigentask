@@ -1,6 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
-import { createApiClientForRequest } from "$lib/apiClient";
+import { createApiClientForRequest } from "$lib/apiClient.server";
 
 export const load: LayoutServerLoad = async ({ url, request }) => {
   const api = createApiClientForRequest();
