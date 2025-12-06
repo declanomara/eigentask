@@ -10,6 +10,7 @@
     const dispatch = createEventDispatcher<{
         consider: DndEvent<Task>;
         finalize: DndEvent<Task>;
+        select: { task: Task };
     }>();
 
     $: backlogOptions = { id: "backlog", items: backlogTasks } satisfies DndZoneOptions<Task>;
@@ -17,6 +18,10 @@
 
     function forward(event: CustomEvent<DndEvent<Task>>) {
         dispatch(event.type as "consider" | "finalize", event.detail);
+    }
+
+    function forwardSelect(event: CustomEvent<{ task: Task }>) {
+        dispatch("select", event.detail);
     }
 </script>
 
@@ -27,6 +32,7 @@
         zoneOptions={backlogOptions}
         on:consider={forward}
         on:finalize={forward}
+        on:select={forwardSelect}
     />
     <TaskColumn
         title="Scheduled"
@@ -34,5 +40,6 @@
         zoneOptions={scheduledOptions}
         on:consider={forward}
         on:finalize={forward}
+        on:select={forwardSelect}
     />
 </div>

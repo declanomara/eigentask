@@ -4,6 +4,7 @@
     import CreateTaskModal from "$lib/components/CreateTaskModal.svelte";
     import Header from "$lib/components/Header.svelte";
     import TaskBoard from "$lib/components/TaskBoard.svelte";
+    import TaskEditDrawer from "$lib/components/TaskEditDrawer.svelte";
     import TaskToolbar from "$lib/components/TaskToolbar.svelte";
     import Timeline from "$lib/components/Timeline.svelte";
     import type { DndEvent } from "svelte-dnd-action";
@@ -34,6 +35,8 @@
 
     let tasks: Task[] = data.tasks ?? [];
     let showCreate = false;
+    let showEdit = false;
+    let selectedTask: Task | null = null;
     let banner: string | null = data.error ?? null;
     let selectedDate = startOfDay(new Date());
 
@@ -93,8 +96,22 @@
         tasks = tasks.map((t) => (t.id === updated.id ? updated : t));
     };
 
+    const removeTask = (id: number) => {
+        tasks = tasks.filter((t) => t.id !== id);
+    };
+
     function handleLogout() {
         window.location.href = LOGOUT_URL;
+    }
+
+    function handleTaskSelect(event: CustomEvent<{ task: Task }>) {
+        selectedTask = event.detail.task;
+        showEdit = true;
+    }
+
+    function handleEditClose() {
+        showEdit = false;
+        selectedTask = null;
     }
 
     async function scheduleTask(taskId: number, startAt: Date) {
@@ -133,6 +150,18 @@
         }
         banner = null;
         replaceTask(res.task);
+    }
+
+    function handleTaskSaved(event: CustomEvent<{ task: Task }>) {
+        replaceTask(event.detail.task);
+        banner = null;
+        handleEditClose();
+    }
+
+    function handleTaskDeleted(event: CustomEvent<{ id: number }>) {
+        removeTask(event.detail.id);
+        banner = null;
+        handleEditClose();
     }
 
     function handleSchedule(event: CustomEvent<{ taskId: number; startAt: Date }>) {
@@ -207,6 +236,14 @@
     </form>
 </CreateTaskModal>
 
+<TaskEditDrawer
+    open={showEdit}
+    task={selectedTask}
+    on:close={handleEditClose}
+    on:saved={handleTaskSaved}
+    on:deleted={handleTaskDeleted}
+/>
+
 <div class="flex justify-center">
     <div class="flex flex-col w-full max-w-7xl px-4 py-6 space-y-6">
         <Timeline
@@ -216,6 +253,7 @@
             tasks={scheduledTasks}
             defaultDuration={defaultDuration}
             on:schedule={handleSchedule}
+            on:select={handleTaskSelect}
         />
         <div class="flex items-center justify-between">
             <div class="text-sm text-gray-500">
@@ -228,6 +266,7 @@
             backlogTasks={backlogTasks}
             scheduledTasks={scheduledTasks}
             on:finalize={handleBoardFinalize}
+            on:select={handleTaskSelect}
         />
     </div>
 </div>
