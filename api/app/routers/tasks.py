@@ -1,110 +1,85 @@
-from datetime import datetime, timedelta
-from typing import Annotated, Any
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.db import get_session
-from app.models.task import Task
+from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
+from app.services.tasks import (
+    create_task_for_user,
+    delete_task_for_user,
+    get_task_for_user,
+    list_tasks_for_user,
+    update_task_for_user,
+)
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-class TaskCreate(BaseModel):
-    """Task creation request payload."""
-
-    title: str
-    description: str | None = None
-
-
-class TaskUpdate(BaseModel):
-    """Task update request."""
-
-    title: str | None = None
-    description: str | None = None
-
-
-def _to_dict(t: Task) -> dict[str, Any]:
-    return {
-        "id": t.id,
-        "title": t.title,
-        "description": t.description,
-    }
-
-
-@router.get("/")
+@router.get("/", response_model=list[TaskRead])
 async def get_tasks(
-    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-) -> list[dict[str, Any]]:
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> list[TaskRead]:
     """List tasks owned by the current user."""
-    q = select(Task).where(Task.created_by_sub == current_user["sub"]).order_by(Task.id.desc())
-    res = await db_session.execute(q)
-    tasks = res.scalars().all()
-    return [_to_dict(t) for t in tasks]
+    tasks = await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
+    return tasks
 
 
-@router.post("/", status_code=201)
+@router.post("/", status_code=201, response_model=TaskRead)
 async def create_task(
     payload: TaskCreate,
-    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-) -> dict[str, Any]:
+) -> TaskRead:
     """Create a new task for the current user."""
-    t = Task(title=payload.title, description=payload.description, created_by_sub=current_user["sub"])
-    db_session.add(t)
-    await db_session.commit()
-    await db_session.refresh(t)
-    return _to_dict(t)
+    try:
+        task = await create_task_for_user(db_session, current_user["sub"], payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return task
 
 
 @router.delete("/{task_id}", status_code=204)
 async def delete_task(
     task_id: int,
-    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
 ) -> None:
     """Delete a task owned by the current user."""
-    q = select(Task).where(Task.id == task_id, Task.created_by_sub == current_user["sub"])
-    res = await db_session.execute(q)
-    t = res.scalar_one_or_none()
-    if not t:
+    task = await get_task_for_user(db_session, task_id, current_user["sub"])
+    if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    await db_session.delete(t)
-    await db_session.commit()
+    await delete_task_for_user(db_session, task)
 
 
-@router.patch("/{task_id}")
+@router.patch("/{task_id}", response_model=TaskRead)
 async def update_task(
     task_id: int,
     payload: TaskUpdate,
-    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-) -> dict[str, Any]:
+) -> TaskRead:
     """Update a task owned by the current user."""
-    q = select(Task).where(Task.id == task_id, Task.created_by_sub == current_user["sub"])
-    res = await db_session.execute(q)
-    t = res.scalar_one_or_none()
-    if not t:
+    task = await get_task_for_user(db_session, task_id, current_user["sub"])
+    if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    if payload.title is not None:
-        t.title = payload.title
-    if payload.description is not None:
-        t.description = payload.description
-    await db_session.commit()
-    await db_session.refresh(t)
-    return _to_dict(t)
+    try:
+        updated = await update_task_for_user(db_session, task, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return updated
 
 
 # Support PUT for clients that use full updates
-@router.put("/{task_id}")
+@router.put("/{task_id}", response_model=TaskRead)
 async def update_task_put(
     task_id: int,
     payload: TaskUpdate,
-    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-) -> dict[str, Any]:
+) -> TaskRead:
     return await update_task(task_id, payload, current_user, db_session)
