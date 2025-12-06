@@ -13,18 +13,11 @@ from app.models.task import Task
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-class TaskBase(BaseModel):
-    """Base task model."""
+class TaskCreate(BaseModel):
+    """Task creation request payload."""
 
-    id: int
     title: str
     description: str | None = None
-    planned_start_at: datetime | None = None
-    planned_duration: timedelta | None = None
-
-
-class TaskCreate(TaskBase):
-    """Task creation request."""
 
 
 class TaskUpdate(BaseModel):
@@ -104,3 +97,14 @@ async def update_task(
     await db_session.commit()
     await db_session.refresh(t)
     return _to_dict(t)
+
+
+# Support PUT for clients that use full updates
+@router.put("/{task_id}")
+async def update_task_put(
+    task_id: int,
+    payload: TaskUpdate,
+    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+    db_session: Annotated[AsyncSession, Depends(get_session)],
+) -> dict[str, Any]:
+    return await update_task(task_id, payload, current_user, db_session)
