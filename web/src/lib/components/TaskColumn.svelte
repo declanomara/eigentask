@@ -12,6 +12,7 @@
         consider: DndEvent<Task>;
         finalize: DndEvent<Task>;
         select: { task: Task };
+        complete: { task: Task };
     }>();
 
     const forward =
@@ -21,6 +22,10 @@
 
     const forwardSelect = (event: CustomEvent<{ task: Task }>) => {
         dispatch("select", event.detail);
+    };
+
+    const forwardComplete = (event: CustomEvent<{ task: Task }>) => {
+        dispatch("complete", event.detail);
     };
 
     $: resolvedOptions =
@@ -47,7 +52,12 @@
     <div class="flex flex-col space-y-2 overflow-y-auto max-h-[70vh] p-3">
         {#if tasks.length > 0}
             {#each tasks as task (task.id)}
-                <TaskCard {task} on:select={forwardSelect} />
+                <TaskCard
+                    {task}
+                    showCompleteButton
+                    on:select={forwardSelect}
+                    on:complete={forwardComplete}
+                />
             {/each}
         {:else}
             <div class="text-sm text-gray-400 italic">No tasks yet.</div>

@@ -3,8 +3,14 @@
   import type { Task, TaskStatus } from "$lib/apiClient";
 
   export let task: Task;
+  export let showCompleteButton = false;
+  export let draggable = true;
 
-  const dispatch = createEventDispatcher<{ select: { task: Task } }>();
+  const dispatch = createEventDispatcher<{
+    select: { task: Task };
+    complete: { task: Task };
+    reopen: { task: Task };
+  }>();
 
   const statusCopy: Record<TaskStatus, string> = {
     BACKLOG: "Backlog",
@@ -37,12 +43,24 @@
     dispatch("select", { task });
   }
 
+  function completeTask(event: MouseEvent) {
+    event.stopPropagation();
+    dispatch("complete", { task });
+  }
+
+  function reopenTask(event: MouseEvent) {
+    event.stopPropagation();
+    dispatch("reopen", { task });
+  }
+
   $: statusKey = (task.status ?? "BACKLOG") as TaskStatus;
+  $: canComplete =
+    showCompleteButton && statusKey !== "COMPLETED" && statusKey !== "REMOVED";
 </script>
 
 <div
-  class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-grab flex flex-col gap-2 select-none"
-  draggable="true"
+  class={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow flex flex-col gap-2 select-none ${draggable ? "cursor-grab" : "cursor-pointer"} ${statusKey === "COMPLETED" ? "opacity-80" : ""}`}
+  draggable={draggable}
   data-dnd-id={task.id}
   on:click={handleClick}
 >
@@ -50,9 +68,32 @@
     <h3 class="font-semibold text-gray-800 text-base leading-tight">
       {task.title}
     </h3>
-    <span class={`text-[11px] px-2 py-1 rounded-full border ${statusTone[statusKey]}`}>
-      {statusCopy[statusKey]}
-    </span>
+    <div class="flex items-center gap-2">
+      {#if canComplete}
+        <button
+          class="w-7 h-7 inline-flex items-center justify-center rounded-full border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-300"
+          aria-label="Mark completed"
+          title="Mark completed"
+          on:click={completeTask}
+        >
+          ✓
+        </button>
+      {/if}
+      {#if statusKey === "COMPLETED"}
+        <button
+          class={`text-[11px] px-2 py-1 rounded-full border ${statusTone[statusKey]} hover:opacity-80`}
+          aria-label="Mark not completed"
+          title="Mark not completed"
+          on:click={reopenTask}
+        >
+          {statusCopy[statusKey]}
+        </button>
+      {:else}
+        <span class={`text-[11px] px-2 py-1 rounded-full border ${statusTone[statusKey]}`}>
+          {statusCopy[statusKey]}
+        </span>
+      {/if}
+    </div>
   </div>
 
   {#if task.description}

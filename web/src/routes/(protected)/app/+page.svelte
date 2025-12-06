@@ -55,6 +55,8 @@
 
     $: backlogTasks = tasks.filter((t) => t.status === "BACKLOG" || t.status === "REMOVED");
     $: scheduledTasks = tasks.filter((t) => t.status === "PLANNED");
+    $: completedTasks = tasks.filter((t) => t.status === "COMPLETED");
+    $: timelineTasks = tasks.filter((t) => t.status === "PLANNED" || t.status === "COMPLETED");
 
     const timelineDayStart = () => {
         const d = startOfDay(selectedDate);
@@ -107,6 +109,46 @@
     function handleTaskSelect(event: CustomEvent<{ task: Task }>) {
         selectedTask = event.detail.task;
         showEdit = true;
+    }
+
+    async function completeTask(taskId: number) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task || task.status === "COMPLETED") return;
+        const res = await api.updateTask(taskId, { status: "COMPLETED" });
+        if (!res.ok || !res.task) {
+            banner = res.error ?? "Unable to complete the task.";
+            return;
+        }
+        banner = null;
+        replaceTask(res.task);
+    }
+
+    async function reopenTask(taskId: number) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task || task.status !== "COMPLETED") return;
+
+        // If it still has scheduled times, restore to PLANNED; otherwise send to BACKLOG.
+        const shouldReschedule = Boolean(task.planned_start_at);
+        const payload = shouldReschedule
+            ? {
+                  status: "PLANNED" as const,
+                  planned_start_at: task.planned_start_at,
+                  planned_end_at: task.planned_end_at,
+                  planned_duration: task.planned_duration,
+              }
+            : {
+                  status: "BACKLOG" as const,
+                  planned_start_at: null,
+                  planned_end_at: null,
+              };
+
+        const res = await api.updateTask(taskId, payload);
+        if (!res.ok || !res.task) {
+            banner = res.error ?? "Unable to reopen the task.";
+            return;
+        }
+        banner = null;
+        replaceTask(res.task);
     }
 
     function handleEditClose() {
@@ -176,6 +218,14 @@
         if (destId === "backlog" && sourceId !== "backlog") {
             unscheduleTask(dragged.id as number);
         }
+    }
+
+    function handleComplete(event: CustomEvent<{ task: Task }>) {
+        completeTask(event.detail.task.id);
+    }
+
+    function handleReopen(event: CustomEvent<{ task: Task }>) {
+        reopenTask(event.detail.task.id);
     }
 </script>
 
@@ -250,7 +300,7 @@
             bind:date={selectedDate}
             startHour={timelineStartHour}
             endHour={timelineEndHour}
-            tasks={scheduledTasks}
+            tasks={timelineTasks}
             defaultDuration={defaultDuration}
             on:schedule={handleSchedule}
             on:select={handleTaskSelect}
@@ -265,8 +315,11 @@
         <TaskBoard
             backlogTasks={backlogTasks}
             scheduledTasks={scheduledTasks}
+            completedTasks={completedTasks}
             on:finalize={handleBoardFinalize}
             on:select={handleTaskSelect}
+            on:complete={handleComplete}
+            on:reopen={handleReopen}
         />
     </div>
 </div>
