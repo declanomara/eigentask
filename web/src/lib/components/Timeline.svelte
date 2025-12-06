@@ -196,6 +196,8 @@
                 previewDuration = null;
                 log("dragleave", {});
             }}
+            role="region"
+            aria-label="Schedule timeline"
         >
             <div class="relative w-full h-full">
                 <!-- Tick marks -->
@@ -206,7 +208,7 @@
                             style={`left:${toPercent((t * slotMinutes))}%; border-color: ${
                                 t * slotMinutes % 60 === 0 ? "#CBD5E1" : "#E2E8F0"
                             };`}
-                        />
+                        ></div>
                     {/each}
                 {/if}
 
@@ -266,7 +268,7 @@
                 {/if}
             </div>
 
-            <div class="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-inset ring-transparent" />
+            <div class="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-inset ring-transparent"></div>
         </div>
     </div>
 

@@ -8,7 +8,10 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		alias: {
+			'svelte-dnd-action': './src/lib/vendor/svelte-dnd-action'
+		}
 	}
 };
 

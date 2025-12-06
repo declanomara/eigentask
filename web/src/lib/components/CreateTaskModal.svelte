@@ -10,6 +10,13 @@
         dispatch("close");
     }
 
+    function onBackdropKeydown(e: KeyboardEvent) {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            close();
+        }
+    }
+
     function onBackdropClick(e: MouseEvent) {
         if (e.target === e.currentTarget) close();
     }
@@ -29,6 +36,9 @@
     <div
         class="fixed inset-0 bg-black/50 z-50"
         on:click={onBackdropClick}
+        on:keydown={onBackdropKeydown}
+        role="button"
+        tabindex="0"
         aria-label="Modal backdrop"
     ></div>
     <div
@@ -40,7 +50,7 @@
         <div
             class="bg-white rounded-md shadow-lg w-full max-w-md mx-4 p-4"
             bind:this={dialogEl}
-            on:click|stopPropagation
+            role="document"
         >
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-lg font-semibold">{title}</h3>
