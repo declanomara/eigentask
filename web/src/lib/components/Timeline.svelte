@@ -44,6 +44,20 @@
             if (statusDiff !== 0) return statusDiff;
             return startMillis(a) - startMillis(b);
         });
+
+    const isSameDayDate = (value: Date, target: Date) =>
+        value.getFullYear() === target.getFullYear() &&
+        value.getMonth() === target.getMonth() &&
+        value.getDate() === target.getDate();
+
+    $: isTodaySelected = isSameDayDate(date, new Date());
+    $: nowLineMinutes = (() => {
+        if (!isTodaySelected || totalMinutes === 0) return null;
+        const now = new Date();
+        const minutes = (now.getHours() - startHour) * 60 + now.getMinutes();
+        if (minutes < 0 || minutes > totalMinutes) return null;
+        return clampMinutes(minutes);
+    })();
     $: zoneOptions = {
         id: "timeline",
         items: visibleTasks,
@@ -205,45 +219,160 @@
     </header>
 
     <div class="px-6">
-        <div
-            class="relative h-36 border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-hidden"
-            use:dndzone={zoneOptions}
-            bind:this={trackEl}
-            on:consider={handleConsider}
-            on:finalize={handleFinalize}
-            on:dragleave={() => {
-                previewStartMinutes = null;
-                previewDuration = null;
-                log("dragleave", {});
-            }}
-            role="region"
-            aria-label="Schedule timeline"
-        >
-            <div class="relative w-full h-full">
-                <!-- Tick marks -->
+        <!-- Desktop horizontal timeline -->
+        <div class="hidden md:block">
+            <div
+                class="relative h-36 border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-hidden"
+                use:dndzone={zoneOptions}
+                bind:this={trackEl}
+                on:consider={handleConsider}
+                on:finalize={handleFinalize}
+                on:dragleave={() => {
+                    previewStartMinutes = null;
+                    previewDuration = null;
+                    log("dragleave", {});
+                }}
+                role="region"
+                aria-label="Schedule timeline"
+            >
+                <div class="relative w-full h-full">
+                    <!-- Tick marks -->
+                    {#if totalMinutes > 0}
+                        {#each ticks as t}
+                            <div
+                                class="absolute top-0 bottom-0 border-l pointer-events-none"
+                                style={`left:${toPercent((t * slotMinutes))}%; border-color: ${
+                                    t * slotMinutes % 60 === 0 ? "#CBD5E1" : "#E2E8F0"
+                                };`}
+                            ></div>
+                        {/each}
+                    {/if}
+
+                    {#if nowLineMinutes !== null}
+                        <div
+                            class="absolute top-0 bottom-0 pointer-events-none"
+                            style={`left:${toPercent(nowLineMinutes)}%; z-index:10;`}
+                        >
+                            <div class="absolute inset-y-0 w-[2px] bg-red-500 opacity-80"></div>
+                        </div>
+                    {/if}
+
+                    <!-- Scheduled blocks -->
+                    {#each visibleTasks as task (task.id)}
+                        {#if task.planned_start_at}
+                            <div
+                                class={`absolute ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
+                                style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%; z-index:${task.status === "PLANNED" ? 20 : 5};`}
+                                draggable={task.status === "PLANNED"}
+                                data-dnd-id={task.id}
+                                on:click={() => dispatch("select", { task })}
+                            >
+                                <div
+                                    class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
+                                >
+                                    <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
+                                    <div class="text-[11px] opacity-90 leading-tight">
+                                        {new Date(task.planned_start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                        —
+                                        {task.planned_end_at
+                                            ? new Date(task.planned_end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                            : new Date(
+                                                  new Date(task.planned_start_at).getTime() +
+                                                      getDuration(task) * 60000,
+                                              ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    {/each}
+
+                    <!-- Preview block while dragging -->
+                    {#if previewStartMinutes !== null && previewDuration !== null}
+                        <div
+                            class="absolute pointer-events-none"
+                            style={`left:${toPercent(previewStartMinutes)}%; width:${toPercent(previewDuration)}%; top:10%; height:80%;`}
+                        >
+                            <div class="h-full rounded-lg border-2 border-blue-400 bg-blue-100/70 text-blue-800 px-3 py-2 flex flex-col justify-between shadow-md">
+                                <div class="font-semibold text-[13px] leading-tight line-clamp-1">Drop to schedule</div>
+                                <div class="text-[11px] opacity-80 leading-tight">
+                                    {#if previewStartMinutes !== null}
+                                        {#if previewDuration !== null}
+                                            {#if totalMinutes > 0}
+                                                {#if previewDuration >= 0}
+                                                    {#if previewStartMinutes >= 0}
+                                                        {#if previewStartMinutes + previewDuration <= totalMinutes}
+                                                            {new Date(startOfDay(date).getTime() + previewStartMinutes * 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                                            —
+                                                            {new Date(startOfDay(date).getTime() + (previewStartMinutes + previewDuration) * 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                                        {/if}
+                                                    {/if}
+                                                {/if}
+                                            {/if}
+                                        {/if}
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+
+                <div class="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-inset ring-transparent"></div>
+            </div>
+
+            <div class="relative h-6 text-[11px] text-gray-600 px-8">
+                {#if totalMinutes > 0}
+                    {#each ticks as t}
+                        {#if t * slotMinutes % 60 === 0}
+                            <span
+                                class="absolute -translate-x-1/2"
+                                style={`left:${toPercent((t * slotMinutes))}%;`}
+                            >
+                                {formatHourLabel(t)}
+                            </span>
+                        {/if}
+                    {/each}
+                {/if}
+            </div>
+        </div>
+
+        <!-- Mobile vertical timeline -->
+        <div class="block md:hidden">
+            <div
+                class="relative h-[640px] border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-hidden"
+                role="region"
+                aria-label="Schedule timeline (mobile)"
+            >
                 {#if totalMinutes > 0}
                     {#each ticks as t}
                         <div
-                            class="absolute top-0 bottom-0 border-l pointer-events-none"
-                            style={`left:${toPercent((t * slotMinutes))}%; border-color: ${
+                            class="absolute left-0 right-0 border-t pointer-events-none"
+                            style={`top:${toPercent((t * slotMinutes))}%; border-color: ${
                                 t * slotMinutes % 60 === 0 ? "#CBD5E1" : "#E2E8F0"
                             };`}
                         ></div>
                     {/each}
                 {/if}
 
-                <!-- Scheduled blocks -->
+                {#if nowLineMinutes !== null}
+                    <div
+                        class="absolute left-0 right-0 pointer-events-none"
+                        style={`top:${toPercent(nowLineMinutes)}%; z-index:10;`}
+                    >
+                        <div class="absolute inset-x-0 h-[2px] bg-red-500 opacity-80"></div>
+                    </div>
+                {/if}
+
                 {#each visibleTasks as task (task.id)}
                     {#if task.planned_start_at}
                         <div
-                            class={`absolute ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
-                            style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%; z-index:${task.status === "PLANNED" ? 2 : 1};`}
+                            class={`absolute px-3 w-full ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
+                            style={`top:${toPercent(getStartMinutes(task))}%; height:${toPercent(getDuration(task))}%; z-index:${task.status === "PLANNED" ? 20 : 5};`}
                             draggable={task.status === "PLANNED"}
                             data-dnd-id={task.id}
                             on:click={() => dispatch("select", { task })}
                         >
                             <div
-                                class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
+                                class={`h-full rounded-lg shadow-md ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
                             >
                                 <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
                                 <div class="text-[11px] opacity-90 leading-tight">
@@ -260,54 +389,8 @@
                         </div>
                     {/if}
                 {/each}
-
-                <!-- Preview block while dragging -->
-                {#if previewStartMinutes !== null && previewDuration !== null}
-                    <div
-                        class="absolute pointer-events-none"
-                        style={`left:${toPercent(previewStartMinutes)}%; width:${toPercent(previewDuration)}%; top:10%; height:80%;`}
-                    >
-                        <div class="h-full rounded-lg border-2 border-blue-400 bg-blue-100/70 text-blue-800 px-3 py-2 flex flex-col justify-between shadow-md">
-                            <div class="font-semibold text-[13px] leading-tight line-clamp-1">Drop to schedule</div>
-                            <div class="text-[11px] opacity-80 leading-tight">
-                                {#if previewStartMinutes !== null}
-                                    {#if previewDuration !== null}
-                                        {#if totalMinutes > 0}
-                                            {#if previewDuration >= 0}
-                                                {#if previewStartMinutes >= 0}
-                                                    {#if previewStartMinutes + previewDuration <= totalMinutes}
-                                                        {new Date(startOfDay(date).getTime() + previewStartMinutes * 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                                        —
-                                                        {new Date(startOfDay(date).getTime() + (previewStartMinutes + previewDuration) * 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                                    {/if}
-                                                {/if}
-                                            {/if}
-                                        {/if}
-                                    {/if}
-                                {/if}
-                            </div>
-                        </div>
-                    </div>
-                {/if}
             </div>
-
-            <div class="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-inset ring-transparent"></div>
         </div>
-    </div>
-
-    <div class="relative h-6 text-[11px] text-gray-600 px-8">
-        {#if totalMinutes > 0}
-            {#each ticks as t}
-                {#if t * slotMinutes % 60 === 0}
-                    <span
-                        class="absolute -translate-x-1/2"
-                        style={`left:${toPercent((t * slotMinutes))}%;`}
-                    >
-                        {formatHourLabel(t)}
-                    </span>
-                {/if}
-            {/each}
-        {/if}
     </div>
 
     {#if DEBUG}
