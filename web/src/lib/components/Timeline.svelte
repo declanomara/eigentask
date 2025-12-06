@@ -27,9 +27,23 @@
     $: totalMinutes = Math.max(0, (endHour - startHour) * 60);
     $: hours = Math.max(0, endHour - startHour);
     $: ticks = Array.from({ length: Math.floor((hours * 60) / slotMinutes) + 1 }, (_, i) => i as number);
-    $: visibleTasks = tasks.filter(
-        (task) => task.status === "PLANNED" && isSameDay(task.planned_start_at, date),
-    );
+    const statusRank = (task: Task) => (task.status === "PLANNED" ? 0 : task.status === "COMPLETED" ? 1 : 2);
+    const startMillis = (task: Task) => {
+        if (!task.planned_start_at) return 0;
+        const d = new Date(task.planned_start_at);
+        return d.getTime();
+    };
+    $: visibleTasks = tasks
+        .filter(
+            (task) =>
+                (task.status === "PLANNED" || task.status === "COMPLETED") &&
+                isSameDay(task.planned_start_at, date),
+        )
+        .sort((a, b) => {
+            const statusDiff = statusRank(a) - statusRank(b);
+            if (statusDiff !== 0) return statusDiff;
+            return startMillis(a) - startMillis(b);
+        });
     $: zoneOptions = {
         id: "timeline",
         items: visibleTasks,
@@ -96,6 +110,11 @@
         // eslint-disable-next-line no-console
         console.log("[timeline]", label, data);
     };
+
+    const blockTone = (task: Task) =>
+        task.status === "COMPLETED"
+            ? "bg-gray-300 text-gray-800 ring-gray-200/80 border border-gray-200"
+            : "bg-blue-500 text-white ring-blue-200/80";
 
     function computePosition(event: CustomEvent<DndEvent<Task>>) {
         const dragged = event.detail.info.source?.item as Task | undefined;
@@ -217,13 +236,15 @@
                 {#each visibleTasks as task (task.id)}
                     {#if task.planned_start_at}
                         <div
-                            class="absolute cursor-grab"
-                            style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%;`}
-                            draggable="true"
+                            class={`absolute ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
+                            style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%; z-index:${task.status === "PLANNED" ? 2 : 1};`}
+                            draggable={task.status === "PLANNED"}
                             data-dnd-id={task.id}
                             on:click={() => dispatch("select", { task })}
                         >
-                            <div class="h-full rounded-lg bg-blue-500 text-white shadow-lg ring-1 ring-blue-200/80 px-3 py-2 flex flex-col justify-between">
+                            <div
+                                class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
+                            >
                                 <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
                                 <div class="text-[11px] opacity-90 leading-tight">
                                     {new Date(task.planned_start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
