@@ -12,6 +12,7 @@
 
     const dispatch = createEventDispatcher<{
         schedule: { taskId: number; startAt: Date };
+        select: { task: Task };
     }>();
 
     const DEBUG = true;
@@ -220,6 +221,7 @@
                             style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%;`}
                             draggable="true"
                             data-dnd-id={task.id}
+                            on:click={() => dispatch("select", { task })}
                         >
                             <div class="h-full rounded-lg bg-blue-500 text-white shadow-lg ring-1 ring-blue-200/80 px-3 py-2 flex flex-col justify-between">
                                 <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>

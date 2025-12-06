@@ -11,12 +11,17 @@
     const dispatch = createEventDispatcher<{
         consider: DndEvent<Task>;
         finalize: DndEvent<Task>;
+        select: { task: Task };
     }>();
 
     const forward =
         (type: "consider" | "finalize") =>
         (event: CustomEvent<DndEvent<Task>>) =>
             dispatch(type, event.detail);
+
+    const forwardSelect = (event: CustomEvent<{ task: Task }>) => {
+        dispatch("select", event.detail);
+    };
 
     $: resolvedOptions =
         zoneOptions ??
@@ -42,7 +47,7 @@
     <div class="flex flex-col space-y-2 overflow-y-auto max-h-[70vh] p-3">
         {#if tasks.length > 0}
             {#each tasks as task (task.id)}
-                <TaskCard {task} />
+                <TaskCard {task} on:select={forwardSelect} />
             {/each}
         {:else}
             <div class="text-sm text-gray-400 italic">No tasks yet.</div>
