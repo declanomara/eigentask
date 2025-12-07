@@ -15,7 +15,7 @@
         select: { task: Task };
     }>();
 
-    const DEBUG = true;
+    const DEBUG = false;
 
     let trackEl: HTMLDivElement | null = null;
     let previewStartMinutes: number | null = null;
@@ -112,9 +112,10 @@
 
     const formatTimeRange = (task: Task) => {
         const start = parseDate(task.planned_start_at);
-        const end =
-            parseDate(task.planned_end_at) ??
-            (start ? new Date(start.getTime() + getDuration(task) * 60000) : null);
+        const explicitEnd = parseDate(task.planned_end_at);
+        const rawDuration = task.planned_duration ?? defaultDuration;
+        const inferredEnd = start ? new Date(start.getTime() + rawDuration * 60000) : null;
+        const end = explicitEnd ?? inferredEnd;
 
         if (!start || !end) return "";
         const startLabel = start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -232,7 +233,7 @@
         </div>
     </header>
 
-    <div class="md:px-6">
+    <div class="sm:px-6">
         <!-- Desktop horizontal timeline -->
         <div class="hidden md:block">
             <div
@@ -342,12 +343,10 @@
 
         <!-- Mobile vertical timeline -->
         <div class="block md:hidden w-full">
-            <div class="space-y-2">
-                {#if visibleTasks.length === 0}
-                    <div class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-600 shadow-sm">
-                        Nothing scheduled for this day.
-                    </div>
-                {:else}
+            {#if visibleTasks.length === 0}
+                <p class="text-sm text-gray-500">Nothing scheduled for this day.</p>
+            {:else}
+                <div class="space-y-2">
                     <div class="flex flex-col gap-1.5">
                         {#each visibleTasks as task (task.id)}
                             <button
@@ -372,8 +371,19 @@
                             </button>
                         {/each}
                     </div>
-                {/if}
-            </div>
+
+                    <div class="flex items-center justify-between text-xs text-gray-600">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                            Scheduled
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                            Completed
+                        </div>
+                    </div>
+                </div>
+            {/if}
         </div>
 
     {#if DEBUG}
