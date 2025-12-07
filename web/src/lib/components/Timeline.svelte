@@ -372,6 +372,16 @@
                             </button>
                         {/each}
                     </div>
+                    <div class="flex items-center justify-between text-xs text-gray-600 pt-1">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                            Scheduled
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                            Completed
+                        </div>
+                    </div>
                 {/if}
             </div>
         </div>

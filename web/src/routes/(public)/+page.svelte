@@ -4,6 +4,21 @@
         name="description"
         content="Eigentask helps you capture, schedule, and complete your day’s work with a fast, focused workflow."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Eigentask · Plan, schedule, and finish your day" />
+    <meta
+        property="og:description"
+        content="Keep backlog, schedule, and completion in one fast, focused workflow."
+    />
+    <meta property="og:image" content="/logo.svg" />
+    <meta property="og:url" content="https://eigentask.com" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Eigentask · Plan, schedule, and finish your day" />
+    <meta
+        name="twitter:description"
+        content="Keep backlog, schedule, and completion in one fast, focused workflow."
+    />
+    <meta name="twitter:image" content="/logo.svg" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-gray-800">
