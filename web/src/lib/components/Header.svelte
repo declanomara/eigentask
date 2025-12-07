@@ -14,12 +14,12 @@
     class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 top-0 mb-1"
 >
     <!-- Branding -->
-    <div class="flex items-center space-x-3">
+    <a href="/" class="flex items-center space-x-3 hover:opacity-90">
         <img src="/logo.svg" alt="Logo" class="w-8 h-8" />
         <span class="text-2xl text-gray-800">
             Eigen<span class="font-bold">Task</span>
         </span>
-    </div>
+    </a>
 
     <!-- Right controls -->
     <div class="flex items-center space-x-4">

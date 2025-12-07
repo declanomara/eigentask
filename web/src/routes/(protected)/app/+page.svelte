@@ -25,7 +25,7 @@
 
     const defaultDuration = 60;
     const timelineStartHour = 8;
-    const timelineEndHour = 20;
+    const timelineEndHour = 18;
 
     const startOfDay = (date: Date) => {
         const d = new Date(date);

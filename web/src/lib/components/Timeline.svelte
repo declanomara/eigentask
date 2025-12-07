@@ -4,11 +4,21 @@
     import type { Task } from "$lib/apiClient";
 
     export let startHour = 8;
-    export let endHour = 20;
+    export let endHour = 18;
     export let slotMinutes = 15;
     export let date: Date = new Date();
     export let tasks: Task[] = [];
     export let defaultDuration = 60;
+
+    const BAR_TOP_PERCENT = 20;
+    const BAR_HEIGHT_PERCENT = 70;
+
+    const SHORT_TASK_MINUTES = 45;
+    const SHORT_LABEL_LANES = 3;
+    const SHORT_LABEL_VERTICAL_GAP = 14; // px per lane
+    const SHORT_LABEL_BASE_OFFSET = 4; // px above bar for lowest lane
+    const SHORT_LABEL_LINE_GAP = 6; // px gap between line end and label
+    const SHORT_LABEL_TEXT_HEIGHT = 14; // px assumed label height for spacing
 
     const dispatch = createEventDispatcher<{
         schedule: { taskId: number; startAt: Date };
@@ -23,6 +33,7 @@
     let ticks: number[] = [];
     let visibleTasks: Task[] = [];
     let debugMessage = "";
+    let shortTaskLaneMap = new Map<number, number>();
 
     $: totalMinutes = Math.max(0, (endHour - startHour) * 60);
     $: hours = Math.max(0, endHour - startHour);
@@ -44,6 +55,18 @@
             if (statusDiff !== 0) return statusDiff;
             return startMillis(a) - startMillis(b);
         });
+
+    // Precompute lanes for short task labels (ordered by start time, first task highest lane).
+    $: shortTaskLaneMap = (() => {
+        const map = new Map<number, number>();
+        const shortTasks = visibleTasks
+            .filter((task) => isShortTask(task))
+            .sort((a, b) => startMillis(a) - startMillis(b));
+        shortTasks.forEach((task, index) => {
+            map.set(Number(task.id), index % SHORT_LABEL_LANES);
+        });
+        return map;
+    })();
 
     const isSameDayDate = (value: Date, target: Date) =>
         value.getFullYear() === target.getFullYear() &&
@@ -110,6 +133,8 @@
         return clampMinutes(task.planned_duration ?? defaultDuration);
     };
 
+    const isShortTask = (task: Task) => getDuration(task) < SHORT_TASK_MINUTES;
+
     const formatTimeRange = (task: Task) => {
         const start = parseDate(task.planned_start_at);
         const explicitEnd = parseDate(task.planned_end_at);
@@ -144,6 +169,18 @@
         task.status === "COMPLETED"
             ? "bg-gray-300 text-gray-800 ring-gray-200/80 border border-gray-200"
             : "bg-blue-500 text-white ring-blue-200/80";
+
+    const titleClampClass = (task: Task) => {
+        const duration = getDuration(task);
+        if (duration >= SHORT_TASK_MINUTES) return "line-clamp-2";
+        return "line-clamp-1";
+    };
+
+    const getCenterPercent = (task: Task) => {
+        const start = getStartMinutes(task);
+        const duration = getDuration(task);
+        return toPercent(start + duration / 2);
+    };
 
     function computePosition(event: CustomEvent<DndEvent<Task>>) {
         const dragged = event.detail.info.source?.item as Task | undefined;
@@ -237,7 +274,7 @@
         <!-- Desktop horizontal timeline -->
         <div class="hidden md:block">
             <div
-                class="relative h-36 border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-hidden"
+                class="relative h-36 border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-visible"
                 use:dndzone={zoneOptions}
                 bind:this={trackEl}
                 on:consider={handleConsider}
@@ -275,19 +312,53 @@
                     <!-- Scheduled blocks -->
                     {#each visibleTasks as task (task.id)}
                         {#if task.planned_start_at}
+                            {#if isShortTask(task) && shortTaskLaneMap.has(Number(task.id))}
+                                {#key task.id}
+                                    {@const lane = Number(shortTaskLaneMap.get(Number(task.id)))}
+                                    {@const labelOffset = SHORT_LABEL_BASE_OFFSET + (SHORT_LABEL_LANES - lane) * SHORT_LABEL_VERTICAL_GAP}
+                                    {@const lineLength = Math.max(0, labelOffset - SHORT_LABEL_TEXT_HEIGHT - SHORT_LABEL_LINE_GAP)}
+                                    <div
+                                        class="absolute pointer-events-none z-30"
+                                        style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:${BAR_TOP_PERCENT}%;`}
+                                    >
+                                        <div
+                                            class="absolute left-1/2 -translate-x-1/2 bg-gray-600"
+                                            style={`width:1px; height:${lineLength}px; top:-${lineLength}px;`}
+                                        ></div>
+                                        <div
+                                            class="absolute text-[11px] font-medium text-gray-600 max-w-[180px] whitespace-nowrap overflow-hidden text-ellipsis text-left"
+                                            style={`transform:translateY(-${labelOffset}px); left:0;`}
+                                        >
+                                            {task.title}
+                                        </div>
+                                    </div>
+                                {/key}
+                            {/if}
+
                             <div
                                 class={`absolute ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
-                                style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:10%; height:80%; z-index:${task.status === "PLANNED" ? 20 : 5};`}
+                                style={`left:${toPercent(getStartMinutes(task))}%; width:${toPercent(getDuration(task))}%; top:${BAR_TOP_PERCENT}%; height:${BAR_HEIGHT_PERCENT}%; z-index:${task.status === "PLANNED" ? 20 : 5};`}
                                 draggable={task.status === "PLANNED"}
                                 data-dnd-id={task.id}
                                 on:click={() => dispatch("select", { task })}
                             >
-                                <div
-                                    class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
-                                >
-                                    <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
-                                    <div class="text-[11px] opacity-90 leading-tight">{formatTimeRange(task)}</div>
-                                </div>
+                                {#if isShortTask(task)}
+                                    <div
+                                        class={`h-full rounded-lg shadow-lg ring-1 ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
+                                        aria-label={task.title}
+                                    >
+                                        <span class="sr-only">{task.title}</span>
+                                    </div>
+                                {:else}
+                                    <div
+                                        class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
+                                    >
+                                        <div class={`font-semibold text-[13px] leading-tight ${titleClampClass(task)}`}>
+                                            {task.title}
+                                        </div>
+                                        <div class="text-[11px] opacity-90 leading-tight">{formatTimeRange(task)}</div>
+                                    </div>
+                                {/if}
                             </div>
                         {/if}
                     {/each}
@@ -296,7 +367,7 @@
                     {#if previewStartMinutes !== null && previewDuration !== null}
                         <div
                             class="absolute pointer-events-none"
-                            style={`left:${toPercent(previewStartMinutes)}%; width:${toPercent(previewDuration)}%; top:10%; height:80%;`}
+                            style={`left:${toPercent(previewStartMinutes)}%; width:${toPercent(previewDuration)}%; top:${BAR_TOP_PERCENT}%; height:${BAR_HEIGHT_PERCENT}%;`}
                         >
                             <div class="h-full rounded-lg border-2 border-blue-400 bg-blue-100/70 text-blue-800 px-3 py-2 flex flex-col justify-between shadow-md">
                                 <div class="font-semibold text-[13px] leading-tight line-clamp-1">Drop to schedule</div>
