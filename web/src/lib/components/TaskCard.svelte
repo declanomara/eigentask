@@ -26,17 +26,29 @@
     REMOVED: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
-  const toDate = (value: string | null) => (value ? new Date(value) : null);
+  const toUtcDate = (value: string | null) => {
+    if (!value) return null;
+    // Treat date-only strings as UTC midnight; otherwise rely on provided timezone or Z.
+    const normalized = value.includes("T") ? value : `${value}T00:00:00Z`;
+    const d = new Date(normalized);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+
+  const dueFormatter = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 
   const formatDueDate = (value: string | null) => {
-    const d = toDate(value);
+    const d = toUtcDate(value);
     if (!d) return null;
-    return d.toLocaleDateString([], { month: "short", day: "numeric" });
+    return dueFormatter.format(d);
   };
 
   const formatTimeRange = (startRaw: string | null, endRaw: string | null) => {
-    const start = toDate(startRaw);
-    const end = toDate(endRaw);
+    const start = toUtcDate(startRaw);
+    const end = toUtcDate(endRaw);
     if (!start) return "";
     const startStr = start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     if (!end) return startStr;
@@ -62,12 +74,21 @@
   $: statusKey = (task.status ?? "BACKLOG") as TaskStatus;
   $: canComplete =
     showCompleteButton && statusKey !== "COMPLETED" && statusKey !== "REMOVED";
-  $: dueDate = toDate(task.due_at);
+  $: dueDate = toUtcDate(task.due_at);
   $: isOverdue = (() => {
     if (!dueDate || statusKey === "COMPLETED") return false;
-    const endOfDay = new Date(dueDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    return endOfDay.getTime() < Date.now();
+    const endOfDayUtc = new Date(
+      Date.UTC(
+        dueDate.getUTCFullYear(),
+        dueDate.getUTCMonth(),
+        dueDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+    return endOfDayUtc.getTime() < Date.now();
   })();
   $: dueLabel = formatDueDate(task.due_at);
 </script>
