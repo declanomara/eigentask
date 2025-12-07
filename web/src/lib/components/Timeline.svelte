@@ -110,6 +110,20 @@
         return clampMinutes(task.planned_duration ?? defaultDuration);
     };
 
+    const formatTimeRange = (task: Task) => {
+        const start = parseDate(task.planned_start_at);
+        const end =
+            parseDate(task.planned_end_at) ??
+            (start ? new Date(start.getTime() + getDuration(task) * 60000) : null);
+
+        if (!start || !end) return "";
+        const startLabel = start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const endLabel = end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return `${startLabel} — ${endLabel}`;
+    };
+
+    const taskStatusLabel = (task: Task) => (task.status === "COMPLETED" ? "Completed" : "Scheduled");
+
     const toPercent = (minutes: number) =>
         totalMinutes === 0 ? 0 : (minutes / totalMinutes) * 100;
 
@@ -218,7 +232,7 @@
         </div>
     </header>
 
-    <div class="px-6">
+    <div class="md:px-6">
         <!-- Desktop horizontal timeline -->
         <div class="hidden md:block">
             <div
@@ -271,16 +285,7 @@
                                     class={`h-full rounded-lg shadow-lg ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
                                 >
                                     <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
-                                    <div class="text-[11px] opacity-90 leading-tight">
-                                        {new Date(task.planned_start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                        —
-                                        {task.planned_end_at
-                                            ? new Date(task.planned_end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                            : new Date(
-                                                  new Date(task.planned_start_at).getTime() +
-                                                      getDuration(task) * 60000,
-                                              ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </div>
+                                    <div class="text-[11px] opacity-90 leading-tight">{formatTimeRange(task)}</div>
                                 </div>
                             </div>
                         {/if}
@@ -336,62 +341,40 @@
         </div>
 
         <!-- Mobile vertical timeline -->
-        <div class="block md:hidden">
-            <div
-                class="relative h-[640px] border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-hidden"
-                role="region"
-                aria-label="Schedule timeline (mobile)"
-            >
-                {#if totalMinutes > 0}
-                    {#each ticks as t}
-                        <div
-                            class="absolute left-0 right-0 border-t pointer-events-none"
-                            style={`top:${toPercent((t * slotMinutes))}%; border-color: ${
-                                t * slotMinutes % 60 === 0 ? "#CBD5E1" : "#E2E8F0"
-                            };`}
-                        ></div>
-                    {/each}
-                {/if}
-
-                {#if nowLineMinutes !== null}
-                    <div
-                        class="absolute left-0 right-0 pointer-events-none"
-                        style={`top:${toPercent(nowLineMinutes)}%; z-index:10;`}
-                    >
-                        <div class="absolute inset-x-0 h-[2px] bg-red-500 opacity-80"></div>
+        <div class="block md:hidden w-full">
+            <div class="space-y-2">
+                {#if visibleTasks.length === 0}
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-600 shadow-sm">
+                        Nothing scheduled for this day.
+                    </div>
+                {:else}
+                    <div class="flex flex-col gap-1.5">
+                        {#each visibleTasks as task (task.id)}
+                            <button
+                                type="button"
+                                class="flex w-full items-start gap-2 rounded-lg px-0.5 py-1.5 text-left transition hover:bg-blue-50/60"
+                                on:click={() => dispatch("select", { task })}
+                            >
+                                <span
+                                    class={`mt-1 h-3 w-3 rounded-full ${task.status === "COMPLETED" ? "bg-gray-400" : "bg-blue-500"}`}
+                                ></span>
+                                <div class="flex-1 min-w-0 space-y-0.5">
+                                    <p class="text-sm font-semibold text-gray-900 leading-tight truncate">{task.title}</p>
+                                    <p class="text-xs text-gray-500 leading-tight">{formatTimeRange(task)}</p>
+                                </div>
+                                <span
+                                    class={`ml-2 text-[11px] font-semibold whitespace-nowrap ${
+                                        task.status === "COMPLETED" ? "text-gray-600" : "text-blue-600"
+                                    }`}
+                                >
+                                    {taskStatusLabel(task)}
+                                </span>
+                            </button>
+                        {/each}
                     </div>
                 {/if}
-
-                {#each visibleTasks as task (task.id)}
-                    {#if task.planned_start_at}
-                        <div
-                            class={`absolute px-3 w-full ${task.status === "PLANNED" ? "cursor-grab" : "cursor-default"}`}
-                            style={`top:${toPercent(getStartMinutes(task))}%; height:${toPercent(getDuration(task))}%; z-index:${task.status === "PLANNED" ? 20 : 5};`}
-                            draggable={task.status === "PLANNED"}
-                            data-dnd-id={task.id}
-                            on:click={() => dispatch("select", { task })}
-                        >
-                            <div
-                                class={`h-full rounded-lg shadow-md ring-1 px-3 py-2 flex flex-col justify-between ${blockTone(task)} ${task.status === "COMPLETED" ? "opacity-80" : ""}`}
-                            >
-                                <div class="font-semibold text-[13px] leading-tight line-clamp-1">{task.title}</div>
-                                <div class="text-[11px] opacity-90 leading-tight">
-                                    {new Date(task.planned_start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    —
-                                    {task.planned_end_at
-                                        ? new Date(task.planned_end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                        : new Date(
-                                              new Date(task.planned_start_at).getTime() +
-                                                  getDuration(task) * 60000,
-                                          ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                </div>
-                            </div>
-                        </div>
-                    {/if}
-                {/each}
             </div>
         </div>
-    </div>
 
     {#if DEBUG}
         <div class="text-[11px] text-gray-500 italic">Debug: {debugMessage}</div>
