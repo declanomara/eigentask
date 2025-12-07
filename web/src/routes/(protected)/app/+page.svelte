@@ -53,8 +53,12 @@
         );
     };
 
+    const startMillis = (task: Task) => parseDate(task.planned_start_at)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+
     $: backlogTasks = tasks.filter((t) => t.status === "BACKLOG" || t.status === "REMOVED");
-    $: scheduledTasks = tasks.filter((t) => t.status === "PLANNED");
+    $: scheduledTasks = tasks
+        .filter((t) => t.status === "PLANNED")
+        .sort((a, b) => startMillis(a) - startMillis(b));
     $: completedTasks = tasks.filter((t) => t.status === "COMPLETED");
     $: timelineTasks = tasks.filter((t) => t.status === "PLANNED" || t.status === "COMPLETED");
 

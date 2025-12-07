@@ -28,6 +28,12 @@
 
   const toDate = (value: string | null) => (value ? new Date(value) : null);
 
+  const formatDueDate = (value: string | null) => {
+    const d = toDate(value);
+    if (!d) return null;
+    return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  };
+
   const formatTimeRange = (startRaw: string | null, endRaw: string | null) => {
     const start = toDate(startRaw);
     const end = toDate(endRaw);
@@ -56,10 +62,20 @@
   $: statusKey = (task.status ?? "BACKLOG") as TaskStatus;
   $: canComplete =
     showCompleteButton && statusKey !== "COMPLETED" && statusKey !== "REMOVED";
+  $: dueDate = toDate(task.due_at);
+  $: isOverdue = (() => {
+    if (!dueDate || statusKey === "COMPLETED") return false;
+    const endOfDay = new Date(dueDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    return endOfDay.getTime() < Date.now();
+  })();
+  $: dueLabel = formatDueDate(task.due_at);
 </script>
 
 <div
-  class={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow flex flex-col gap-2 select-none ${draggable ? "cursor-grab" : "cursor-pointer"} ${statusKey === "COMPLETED" ? "opacity-80" : ""}`}
+  class={`rounded-xl border p-4 hover:shadow-md transition-shadow flex flex-col gap-2 select-none ${draggable ? "cursor-grab" : "cursor-pointer"} ${statusKey === "COMPLETED" ? "opacity-80" : ""} ${
+    isOverdue ? "border-rose-200 bg-rose-50/70" : "border-gray-200 bg-white"
+  }`}
   draggable={draggable}
   data-dnd-id={task.id}
   on:click={handleClick}
@@ -106,6 +122,13 @@
     {/if}
     {#if task.planned_start_at}
       <span>{formatTimeRange(task.planned_start_at, task.planned_end_at)}</span>
+    {/if}
+    {#if dueLabel}
+      <span
+        class={`ml-auto italic text-[11px] leading-tight self-center ${isOverdue ? "text-rose-600 font-semibold" : "text-gray-600"}`}
+      >
+        Due {dueLabel}
+      </span>
     {/if}
   </div>
 </div>
