@@ -1,13 +1,68 @@
-# Eigentask
+# EigenTask
 
-A full‑stack task planning app.
+EigenTask is an opionated task management platform intended to minimize time and effort spent deciding _what_ to do _when_ so you can spend more time actually **_doing_**. Visit [eigentask.com](https://eigentask.com) to get started.
 
-- Backend: `FastAPI` + `SQLAlchemy` + `Alembic` + `Redis` (sessions)
-- Frontend: `SvelteKit` + `Vite` + `Tailwind`
-- Infrastructure: Docker Compose for local development, PostgreSQL 16, Redis 7
+# Table of Contents
 
+1. [Design](#design)
+2. [Installation Guide](#installation)
+3. [Contribution Guide](#contribution-guide)
+4. [License](#licensing)
 
-## Quick start (local dev)
+# Design
+
+EigenTask is a [Svelte](https://svelte.dev/) 5 app built with a [FastAPI](https://fastapi.tiangolo.com/) backend. It uses [KeyCloak](https://www.keycloak.org/) for user management, [PostgreSQL](https://www.postgresql.org/) with [Alembic](https://alembic.sqlalchemy.org/en/latest/) for database migrations, and [Redis](https://redis.io/) for session storage and caching.
+
+The guiding philosophy EigenTask's design is to minimize vendor lock-in and promote FOSS for the benefit of all.
+
+## Project layout
+
+- `api/` — FastAPI app
+  - `app/core/` — configuration, DB setup, auth/session helpers
+  - `app/models/` — SQLAlchemy models
+  - `app/routers/` — API routers (auth, users, tasks)
+  - `alembic/` — Alembic env and versioned migrations
+- `web/` — SvelteKit app
+  - `src/routes/` — public and protected routes
+  - `src/lib/` — API client and UI components
+  - `static/` — static assets (e.g., `favicon.svg`)
+- `envs/` — environment files for local dev
+- `docker-compose.dev.yml` — dev services
+- `migrate.sh` — Alembic helper script (see below)
+
+## Database migrations (migrate.sh)
+
+We use a simple wrapper `migrate.sh` to run Alembic commands consistently in local Docker or on a host.
+
+Usage:
+
+```bash
+# Create a new autogenerate migration
+./migrate.sh revision "Add foo to bar"
+
+# Apply all migrations
+./migrate.sh upgrade
+
+# Downgrade one step (or pass a specific revision)
+./migrate.sh downgrade -1
+
+# Show current head
+./migrate.sh current
+
+# Show history
+./migrate.sh history
+
+# Stamp the DB to head without applying migrations
+./migrate.sh stamp
+```
+
+Notes:
+
+- The script will execute inside the running API container when available, so `DATABASE_URL` from `envs/api.dev.env` is used automatically.
+- Autogenerate will diff model metadata (`app/core/db.Base.metadata`) against the DB. Review autogen results before committing.
+- Commit migration files in `api/alembic/versions/` with your changes.
+
+# Installation
 
 1) Install prerequisites
 
@@ -46,78 +101,11 @@ The API also creates tables on startup as a safeguard, but you should treat Alem
 Visit `http://localhost:3000`. Protected routes will redirect you to Keycloak for login (see OIDC settings in `envs/api.dev.env`).
 
 
-## Project layout
+# Contribution guide
 
-- `api/` — FastAPI app
-  - `app/core/` — configuration, DB setup, auth/session helpers
-  - `app/models/` — SQLAlchemy models
-  - `app/routers/` — API routers (auth, users, tasks)
-  - `alembic/` — Alembic env and versioned migrations
-- `web/` — SvelteKit app
-  - `src/routes/` — public and protected routes
-  - `src/lib/` — API client and UI components
-  - `static/` — static assets (e.g., `favicon.svg`)
-- `envs/` — environment files for local dev
-- `docker-compose.dev.yml` — dev services
-- `migrate.sh` — Alembic helper script (see below)
+Contributions are welcome, but must follow existing style conventions and design principles.
 
-
-## Conventions
-
-- Python code is formatted and linted with `ruff` (see `api/pyproject.toml`).
-- Use explicit, readable names; avoid unnecessary nesting and broad try/excepts.
-- Svelte components follow idiomatic SvelteKit structure; server actions are used for mutations on protected routes.
-- API routes prefer small, explicit request/response payloads. Database entities should not be exposed directly.
-- When updating HTTP methods, make sure CORS is configured to allow them (API already allows `GET, POST, PUT, PATCH, DELETE, OPTIONS`).
-
-
-## Database migrations (migrate.sh)
-
-We use a simple wrapper `migrate.sh` to run Alembic commands consistently in local Docker or on a host.
-
-Usage:
-
-```bash
-# Create a new autogenerate migration
-./migrate.sh revision "Add foo to bar"
-
-# Apply all migrations
-./migrate.sh upgrade
-
-# Downgrade one step (or pass a specific revision)
-./migrate.sh downgrade -1
-
-# Show current head
-./migrate.sh current
-
-# Show history
-./migrate.sh history
-
-# Stamp the DB to head without applying migrations
-./migrate.sh stamp
-```
-
-Notes:
-
-- The script will execute inside the running API container when available, so `DATABASE_URL` from `envs/api.dev.env` is used automatically.
-- Autogenerate will diff model metadata (`app/core/db.Base.metadata`) against the DB. Review autogen results before committing.
-- Commit migration files in `api/alembic/versions/` with your changes.
-
-
-## Developing
-
-- Web: `cd web && npm i && npm run dev` (outside Docker). When running in Compose, the container already runs Vite dev server and watches files.
-- API: `docker compose -f docker-compose.dev.yml logs -f api` to tail backend logs.
-
-
-## Troubleshooting
-
-- Favicon 404 in dev: we serve `web/static/favicon.svg` and now link it explicitly in `web/src/app.html`. If your browser still requests `/favicon.ico`, a fallback `<link rel="alternate icon" href="/favicon.ico" />` is present (optional to provide).
-- Browser console error mentioning `content_script.js`: that originates from a browser extension content script, not this app. Test in a private window or with extensions disabled.
-- Task creation not persisting: ensure migrations are applied (`./migrate.sh upgrade`) and that you are authenticated (protected routes require a valid session). The create task payload is `{"title": string, "description"?: string}`; the API now validates this shape.
-
-
-## Contribution guide
+## High Level Overview
 
 1) Create a feature branch from `main`.
 2) Make changes with clear, focused commits.
@@ -125,17 +113,10 @@ Notes:
    - Update SQLAlchemy models.
    - Generate a migration: `./migrate.sh revision "Your message"`
    - Review and apply: `./migrate.sh upgrade`
-4) Ensure the app runs locally (Compose up + smoke test the feature).
-5) Open a PR with a concise description, screenshots if UI changes, and any migration notes (including backfill/ops steps if needed).
+5) Open a PR with a concise description, screenshots if UI changes, and any migration notes.
 
-Code style:
+# Licensing
 
-- Python: keep code readable and explicit; prefer early returns; only catch exceptions you handle meaningfully.
-- TypeScript/Svelte: keep types clear; avoid `any`; colocate server actions with pages where practical.
-
-
-## Licensing
-
-TBD.
+GNU Affero General Public License v3. See [LICENSE](LICENSE) for details. 
 
 
