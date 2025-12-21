@@ -1,6 +1,6 @@
 # EigenTask
 
-EigenTask is an opionated task management platform intended to minimize time and effort spent deciding _what_ to do _when_ so you can spend more time actually **_doing_**. Visit [eigentask.com](https://eigentask.com) to get started.
+EigenTask is an opinionated task management platform intended to minimize time and effort spent deciding _what_ to do _when_ so you can spend more time actually **_doing_**. Visit [eigentask.com](https://eigentask.com) to get started.
 
 # Table of Contents
 
@@ -13,7 +13,7 @@ EigenTask is an opionated task management platform intended to minimize time and
 
 EigenTask is a [Svelte](https://svelte.dev/) 5 app built with a [FastAPI](https://fastapi.tiangolo.com/) backend. It uses [KeyCloak](https://www.keycloak.org/) for user management, [PostgreSQL](https://www.postgresql.org/) with [Alembic](https://alembic.sqlalchemy.org/en/latest/) for database migrations, and [Redis](https://redis.io/) for session storage and caching.
 
-The guiding philosophy EigenTask's design is to minimize vendor lock-in and promote FOSS for the benefit of all.
+The guiding philosophy of EigenTask's design is to minimize vendor lock-in and promote FOSS for the benefit of all.
 
 ## Project layout
 
@@ -113,7 +113,7 @@ Contributions are welcome, but must follow existing style conventions and design
    - Update SQLAlchemy models.
    - Generate a migration: `./migrate.sh revision "Your message"`
    - Review and apply: `./migrate.sh upgrade`
-5) Open a PR with a concise description, screenshots if UI changes, and any migration notes.
+4) Open a PR with a concise description, screenshots if UI changes, and any migration notes.
 
 # Licensing
 
