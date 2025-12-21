@@ -1,12 +1,12 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { dndzone, type DndEvent, type DndZoneOptions } from "svelte-dnd-action";
+    import { dndzone, type DndEvent, type DndItem, type DndZoneOptions } from "svelte-dnd-action";
     import type { Task } from "$lib/apiClient";
     import TaskCard from "$lib/components/TaskCard.svelte";
 
     export let title: string;
     export let tasks: Task[] = [];
-    export let zoneOptions: DndZoneOptions<Task> | undefined;
+    export let zoneOptions: DndZoneOptions<DndItem> | undefined;
 
     const dispatch = createEventDispatcher<{
         consider: DndEvent<Task>;
@@ -17,8 +17,8 @@
 
     const forward =
         (type: "consider" | "finalize") =>
-        (event: CustomEvent<DndEvent<Task>>) =>
-            dispatch(type, event.detail);
+        (event: CustomEvent<DndEvent<DndItem>>) =>
+            dispatch(type, event.detail as DndEvent<Task>);
 
     const forwardSelect = (event: CustomEvent<{ task: Task }>) => {
         dispatch("select", event.detail);
@@ -33,12 +33,13 @@
         ({
             id: `column-${title ?? "task"}`,
             items: tasks,
-        } satisfies DndZoneOptions<Task>);
+            getItemId: (item: DndItem) => item.id,
+        } satisfies DndZoneOptions<DndItem>);
 </script>
 
 <div
     class="flex flex-col bg-white rounded-2xl w-full border border-gray-200 shadow-sm"
-    use:dndzone={resolvedOptions as DndZoneOptions}
+    use:dndzone={resolvedOptions}
     on:consider={forward("consider")}
     on:finalize={forward("finalize")}
 >

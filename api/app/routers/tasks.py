@@ -17,19 +17,18 @@ from app.services.tasks import (
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.get("/", response_model=list[TaskRead])
+@router.get("/")
 async def get_tasks(
     current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[TaskRead]:
     """List tasks owned by the current user."""
-    tasks = await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
-    return tasks
+    return await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
 
 
-@router.post("/", status_code=201, response_model=TaskRead)
+@router.post("/", status_code=201)
 async def create_task(
     payload: TaskCreate,
     current_user: Annotated[dict[str, str], Depends(get_current_user)],
@@ -56,7 +55,7 @@ async def delete_task(
     await delete_task_for_user(db_session, task)
 
 
-@router.patch("/{task_id}", response_model=TaskRead)
+@router.patch("/{task_id}")
 async def update_task(
     task_id: int,
     payload: TaskUpdate,
@@ -75,11 +74,12 @@ async def update_task(
 
 
 # Support PUT for clients that use full updates
-@router.put("/{task_id}", response_model=TaskRead)
+@router.put("/{task_id}")
 async def update_task_put(
     task_id: int,
     payload: TaskUpdate,
     current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
 ) -> TaskRead:
+    """Full update variant for clients that use PUT semantics."""
     return await update_task(task_id, payload, current_user, db_session)

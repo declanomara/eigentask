@@ -23,20 +23,23 @@ class TaskCreate(BaseModel):
     def _title_not_blank(cls, value: str) -> str:
         value = value.strip()
         if not value:
-            raise ValueError("title cannot be blank")
+            message = "title cannot be blank"
+            raise ValueError(message)
         return value
 
     @field_validator("planned_duration")
     @classmethod
     def _planned_duration_positive(cls, value: int | None) -> int | None:
         if value is not None and value <= 0:
-            raise ValueError("planned_duration must be positive when provided")
+            message = "planned_duration must be positive when provided"
+            raise ValueError(message)
         return value
 
     @model_validator(mode="after")
     def _validate_schedule(self) -> "TaskCreate":
         if self.planned_start_at and self.planned_end_at and self.planned_end_at < self.planned_start_at:
-            raise ValueError("planned_end_at must be after planned_start_at")
+            message = "planned_end_at must be after planned_start_at"
+            raise ValueError(message)
         return self
 
 
@@ -60,20 +63,23 @@ class TaskUpdate(BaseModel):
             return value
         value = value.strip()
         if not value:
-            raise ValueError("title cannot be blank")
+            message = "title cannot be blank"
+            raise ValueError(message)
         return value
 
     @field_validator("planned_duration")
     @classmethod
     def _planned_duration_positive(cls, value: int | None) -> int | None:
         if value is not None and value <= 0:
-            raise ValueError("planned_duration must be positive when provided")
+            message = "planned_duration must be positive when provided"
+            raise ValueError(message)
         return value
 
     @model_validator(mode="after")
     def _validate_schedule(self) -> "TaskUpdate":
         if self.planned_start_at and self.planned_end_at and self.planned_end_at < self.planned_start_at:
-            raise ValueError("planned_end_at must be after planned_start_at")
+            message = "planned_end_at must be after planned_start_at"
+            raise ValueError(message)
         return self
 
 

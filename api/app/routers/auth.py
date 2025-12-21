@@ -159,10 +159,10 @@ async def logout(request: Request) -> RedirectResponse:
     params = {"post_logout_redirect_uri": post_logout_redirect_uri}
     params["id_token_hint"] = id_token
 
-    end_session = (
-        discovery.get("end_session_endpoint")
-        or f"{str(settings.keycloak_url).removesuffix('/')}/realms/{settings.keycloak_realm}/protocol/openid-connect/logout"
-    )
+    end_session = discovery.get("end_session_endpoint")
+    if not end_session:
+        keycloak_base = str(settings.keycloak_url).removesuffix("/")
+        end_session = f"{keycloak_base}/realms/{settings.keycloak_realm}/protocol/openid-connect/logout"
     redirect = f"{end_session}?{urlencode(params)}"
     response = RedirectResponse(url=redirect, status_code=302)
     # Remove server-side session and sid cookie

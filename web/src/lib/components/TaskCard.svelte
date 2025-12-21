@@ -56,8 +56,9 @@
     return `${startStr} - ${endStr}`;
   };
 
-  function handleClick(event: MouseEvent) {
-    if (event.defaultPrevented) return;
+  function handleClick(event: MouseEvent | KeyboardEvent) {
+    // Allow keyboard callers that intentionally call preventDefault()
+    if (event instanceof MouseEvent && event.defaultPrevented) return;
     dispatch("select", { task });
   }
 

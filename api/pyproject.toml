@@ -27,6 +27,7 @@ packages = ["app"]
 dev = [
     "ruff>=0.13.0",
     "ty>=0.0.1a20",
+    "pytest>=8.3.0",
 ]
 
 [tool.ruff]

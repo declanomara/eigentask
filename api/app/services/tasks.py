@@ -18,7 +18,10 @@ def _coerce_planned_duration(
         if planned_duration is None:
             return minutes
         if planned_duration != minutes:
-            raise ValueError("planned_duration must equal the difference between planned_start_at and planned_end_at")
+            message = (
+                "planned_duration must equal the difference between planned_start_at and planned_end_at"
+            )
+            raise ValueError(message)
     return planned_duration
 
 
@@ -29,6 +32,7 @@ async def list_tasks_for_user(
     limit: int = 100,
     offset: int = 0,
 ) -> list[Task]:
+    """Return tasks for a user ordered by newest first."""
     stmt = (
         select(Task)
         .where(Task.created_by_sub == created_by_sub)
@@ -45,6 +49,7 @@ async def create_task_for_user(
     created_by_sub: str,
     payload: TaskCreate,
 ) -> Task:
+    """Create a task for the given user."""
     data = payload.model_dump()
     duration = _coerce_planned_duration(
         data.get("planned_start_at"),
@@ -68,6 +73,7 @@ async def create_task_for_user(
 
 
 async def get_task_for_user(session: AsyncSession, task_id: int, created_by_sub: str) -> Task | None:
+    """Fetch a single task for a user by id."""
     stmt = select(Task).where(Task.id == task_id, Task.created_by_sub == created_by_sub)
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
@@ -78,6 +84,7 @@ async def update_task_for_user(
     task: Task,
     payload: TaskUpdate,
 ) -> Task:
+    """Update an existing task owned by the user."""
     data = payload.model_dump(exclude_unset=True)
     # Apply simple fields
     for field in ("title", "description", "status", "due_at", "planned_start_at", "planned_end_at", "planned_duration"):
@@ -96,6 +103,7 @@ async def update_task_for_user(
 
 
 async def delete_task_for_user(session: AsyncSession, task: Task) -> None:
+    """Delete a task and commit the change."""
     await session.delete(task)
     await session.commit()
 

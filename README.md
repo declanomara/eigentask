@@ -115,6 +115,18 @@ Contributions are welcome, but must follow existing style conventions and design
    - Review and apply: `./migrate.sh upgrade`
 4) Open a PR with a concise description, screenshots if UI changes, and any migration notes.
 
+## Local checks
+
+Run these before opening a PR:
+
+- Backend (FastAPI):
+  - Install deps incl. dev tools: `cd api && uv sync --all-groups`
+  - Lint: `cd api && uv run ruff check .`
+  - Tests: `cd api && uv run pytest` (when tests are present)
+- Frontend (SvelteKit):
+  - Install deps: `cd web && npm install`
+  - Lint/type-check: `cd web && npm run check`
+
 # Licensing
 
 GNU Affero General Public License v3. See [LICENSE](LICENSE) for details. 
