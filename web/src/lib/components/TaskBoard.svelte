@@ -64,8 +64,6 @@
     <details class="rounded-xl border border-gray-200 bg-gray-50" bind:open={showCompleted}>
         <summary
             class="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition cursor-pointer select-none list-none"
-            role="button"
-            aria-expanded={showCompleted}
         >
             <div class="flex items-center gap-2">
                 <span class="text-gray-600">{showCompleted ? "▾" : "▸"}</span>

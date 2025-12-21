@@ -60,7 +60,7 @@
     aria-label="Modal backdrop"
     on:click={handleBackdropClick}
     on:keydown={handleBackdropKeydown}
-  />
+  ></div>
   <div
     class={`fixed inset-0 z-50 flex ${align === "center" ? "items-center justify-center" : "items-stretch justify-end"}`}
     role="dialog"

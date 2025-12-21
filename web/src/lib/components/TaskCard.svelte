@@ -66,6 +66,13 @@
     dispatch("complete", { task });
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleClick(event);
+    }
+  }
+
   function reopenTask(event: MouseEvent) {
     event.stopPropagation();
     dispatch("reopen", { task });
@@ -100,6 +107,9 @@
   draggable={draggable}
   data-dnd-id={task.id}
   on:click={handleClick}
+  role="button"
+  tabindex="0"
+  on:keydown={handleKeydown}
 >
   <div class="flex items-start justify-between gap-3">
     <h3 class="font-semibold text-gray-800 text-base leading-tight">

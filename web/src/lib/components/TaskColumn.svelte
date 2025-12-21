@@ -38,7 +38,7 @@
 
 <div
     class="flex flex-col bg-white rounded-2xl w-full border border-gray-200 shadow-sm"
-    use:dndzone={resolvedOptions}
+    use:dndzone={resolvedOptions as DndZoneOptions}
     on:consider={forward("consider")}
     on:finalize={forward("finalize")}
 >

@@ -176,6 +176,13 @@
         return "line-clamp-1";
     };
 
+    const handleBlockKeydown = (event: KeyboardEvent, task: Task) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            dispatch("select", { task });
+        }
+    };
+
     const getCenterPercent = (task: Task) => {
         const start = getStartMinutes(task);
         const duration = getDuration(task);
@@ -341,6 +348,9 @@
                                 draggable={task.status === "PLANNED"}
                                 data-dnd-id={task.id}
                                 on:click={() => dispatch("select", { task })}
+                                role="button"
+                                tabindex="0"
+                                on:keydown={(event) => handleBlockKeydown(event, task)}
                             >
                                 {#if isShortTask(task)}
                                     <div
@@ -449,4 +459,5 @@
     {#if DEBUG}
         <div class="text-[11px] text-gray-500 italic">Debug: {debugMessage}</div>
     {/if}
+    </div>
 </section>

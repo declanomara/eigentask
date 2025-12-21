@@ -20,6 +20,9 @@ dependencies = [
     "alembic>=1.17.1",
 ]
 
+[tool.setuptools]
+packages = ["app"]
+
 [dependency-groups]
 dev = [
     "ruff>=0.13.0",
