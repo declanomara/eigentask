@@ -33,19 +33,21 @@ def test_settings(tmp_path_factory) -> Settings:  # type: ignore[no-untyped-def]
     """Create test settings with temporary file-based SQLite database."""
     # Create a temporary database file for the test session
     db_path = tmp_path_factory.mktemp("db") / "test.db"
-    return Settings(
-        environment="test",
-        database_url=f"sqlite+aiosqlite:///{db_path}",
-        redis_url="redis://localhost:6379/15",  # Will be mocked with fakeredis
-        frontend_origin="http://localhost:3000",
-        backend_origin="http://localhost:8000",
-        keycloak_url="https://keycloak.test",
-        keycloak_realm="test-realm",
-        keycloak_client_id="test-client",
-        callback_url="http://localhost:8000/auth/callback",
-        session_secret="test-secret-key-for-sessions",
-        cookie_secure=False,
-    )
+    # Use kwargs to bypass type checking for URL strings
+    settings_dict = {
+        "environment": "test",
+        "database_url": f"sqlite+aiosqlite:///{db_path}",
+        "redis_url": "redis://localhost:6379/15",
+        "frontend_origin": "http://localhost:3000",
+        "backend_origin": "http://localhost:8000",
+        "keycloak_url": "https://keycloak.test",
+        "keycloak_realm": "test-realm",
+        "keycloak_client_id": "test-client",
+        "callback_url": "http://localhost:8000/auth/callback",
+        "session_secret": "test-secret-key-for-sessions",
+        "cookie_secure": False,
+    }
+    return Settings(**settings_dict)  # type: ignore[arg-type]
 
 
 @pytest_asyncio.fixture

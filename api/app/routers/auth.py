@@ -113,9 +113,9 @@ async def oidc_callback(request: Request, code: str, state: str) -> RedirectResp
         "expires_at": int(__import__("time").time()) + int(tokens.get("expires_in", 300)),
     }
     if "refresh_token" in tokens:
-        token_bundle["refresh_token"] = cast("str", tokens["refresh_token"])
+        token_bundle["refresh_token"] = tokens["refresh_token"]  # type: ignore[typeddict-item]
     if "id_token" in tokens:
-        token_bundle["id_token"] = cast("str", tokens["id_token"])
+        token_bundle["id_token"] = tokens["id_token"]  # type: ignore[typeddict-item]
 
     sid = new_sid()
     r = request.app.state.redis
@@ -142,7 +142,7 @@ async def logout(request: Request) -> RedirectResponse:
     sid = request.cookies.get(settings.session_cookie_name)
     r = request.app.state.redis if sid else None
     stored = await get_tokens(r, sid) if r and sid else None
-    id_token = cast("str | None", stored.get("id_token") if stored else None)
+    id_token: str | None = stored.get("id_token") if stored else None  # type: ignore[assignment]
     post_logout_redirect_uri = request.query_params.get("return_to", str(settings.frontend_origin))
 
     # If we don't have an id_token, skip calling the IdP end-session endpoint.

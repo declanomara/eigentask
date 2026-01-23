@@ -137,8 +137,8 @@ def get_public_key(token: str, keys: JWKS) -> str:
                 padding = "=" * (-len(value) % 4)
                 return base64.urlsafe_b64decode(value + padding)
 
-            n = _b64url_to_bytes(cast("str", key["n"]))
-            e = _b64url_to_bytes(cast("str", key["e"]))
+            n = _b64url_to_bytes(key["n"])  # type: ignore[arg-type]
+            e = _b64url_to_bytes(key["e"])  # type: ignore[arg-type]
 
             # Convert to integers
             n_int = int.from_bytes(n, "big")

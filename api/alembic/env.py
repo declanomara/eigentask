@@ -47,8 +47,11 @@ def do_run_migrations(sync_connection) -> None:
 
 async def run_migrations_online_async() -> None:
     """Async entrypoint for online migrations."""
+    db_url = config.get_main_option("sqlalchemy.url")
+    if not db_url:
+        raise ValueError("sqlalchemy.url is not set in alembic.ini")
     connectable: AsyncEngine = create_async_engine(
-        config.get_main_option("sqlalchemy.url"),
+        db_url,
         poolclass=pool.NullPool,
     )
 
