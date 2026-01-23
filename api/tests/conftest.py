@@ -1,6 +1,5 @@
 """Pytest fixtures for integration testing."""
 
-import asyncio
 from collections.abc import AsyncIterator, Iterator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -11,9 +10,7 @@ from fakeredis import FakeAsyncRedis
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
-    AsyncConnection,
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
@@ -31,8 +28,8 @@ from app.routers import tasks as tasks_router
 from app.routers import users as users_router
 
 
-@pytest.fixture(scope="function")
-def test_settings(tmp_path_factory) -> Settings:
+@pytest.fixture
+def test_settings(tmp_path_factory) -> Settings:  # type: ignore[no-untyped-def]
     """Create test settings with temporary file-based SQLite database."""
     # Create a temporary database file for the test session
     db_path = tmp_path_factory.mktemp("db") / "test.db"
@@ -197,8 +194,8 @@ def mock_jwks() -> Iterator[MagicMock]:
                 "use": "sig",
                 "n": "test-n-value",
                 "e": "AQAB",
-            }
-        ]
+            },
+        ],
     }
 
     with patch("app.core.auth.get_jwks", new_callable=AsyncMock) as mock:

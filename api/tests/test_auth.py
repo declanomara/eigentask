@@ -78,7 +78,7 @@ class TestAuthCallback:
 
         # Extract state from redirect URL
         location = login_response.headers["location"]
-        state_param = [p for p in location.split("&") if p.startswith("state=")][0]
+        state_param = next(p for p in location.split("&") if p.startswith("state="))
         state = state_param.split("=")[1]
 
         # Mock the token exchange
@@ -204,9 +204,8 @@ class TestAuthLogout:
         assert response.status_code in [302, 307]  # Accept both redirect codes
 
         # Check that cookie is deleted (set-cookie with Max-Age=0 or expires in past)
-        set_cookie = response.headers.get("set-cookie", "")
-        # Cookie may not be set if there was no session to begin with
-        assert "sid=" in set_cookie or "Max-Age=0" in set_cookie or set_cookie == "" or True
+        # Cookie may not be set if there was no session to begin with, so we just verify no error
+        assert response.status_code in [302, 307]
 
 
 @pytest.mark.integration

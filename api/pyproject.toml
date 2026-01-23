@@ -48,7 +48,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*" = ["S101"]
+"tests/**/*" = [
+    "S101",      # Allow assert statements in tests
+    "PLR2004",   # Allow magic values in tests
+    "ARG002",    # Allow unused method arguments (fixtures)
+    "ANN001",    # Allow missing type annotations in test fixtures
+    "PLC0415",   # Allow imports not at top-level in tests
+    "S106",      # Allow hardcoded passwords in test fixtures
+    "PLR0913",   # Allow many arguments in test factories
+]
 
 [tool.ty.environment]
 extra-paths = [".venv/"]
