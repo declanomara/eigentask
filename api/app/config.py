@@ -40,7 +40,7 @@ class Settings(BaseSettings):
         """Initialize settings with defaults."""
         # Set defaults if not provided
         if "frontend_origin" not in kwargs:
-            kwargs["frontend_origin"] = "http://localhost:5173"
+            kwargs["frontend_origin"] = "http://localhost:3000"
         if "backend_origin" not in kwargs:
             kwargs["backend_origin"] = "http://localhost:8000"
         if "keycloak_url" not in kwargs:
