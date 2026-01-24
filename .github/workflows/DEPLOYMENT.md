@@ -288,6 +288,14 @@ On your staging server, ensure:
    - Pull from the git repository
    - Read environment files in `/etc/eigentask/`
 
+## Testing Deployment
+
+**See `TESTING-DEPLOYMENT.md` for a comprehensive guide on testing the staging deployment workflow**, including:
+- Manual trigger instructions
+- Prerequisites checklist
+- Verification steps
+- Troubleshooting common issues
+
 ## Deployment Process
 
 When code is pushed to `staging`:
@@ -295,10 +303,11 @@ When code is pushed to `staging`:
 1. CI workflow runs (lint, type check, tests)
 2. If CI passes, deployment workflow triggers
 3. Workflow SSHs to the staging server
-4. Pulls latest code from `staging` branch
-5. Rebuilds Docker containers
-6. Restarts services with `docker compose up -d`
-7. Verifies services are running
+4. Creates/updates environment files from GitHub Secrets
+5. Pulls latest code from `staging` branch
+6. Rebuilds Docker containers
+7. Restarts services with `docker compose up -d`
+8. Verifies services are running
 
 ## Manual Deployment
 
