@@ -1,0 +1,150 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches: [main]
+  workflow_dispatch: # Allow manual triggering
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false # Don't cancel - let deployments complete
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only deploy if CI workflow succeeded
+    if: |
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') ||
+      github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy environment files
+        env:
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH || '/opt/eigentask' }}
+          PROD_API_ENV: ${{ secrets.PROD_API_ENV }}
+          PROD_WEB_ENV: ${{ secrets.PROD_WEB_ENV }}
+          PROD_APP_DB_ENV: ${{ secrets.PROD_APP_DB_ENV }}
+          PROD_KEYCLOAK_ENV: ${{ secrets.PROD_KEYCLOAK_ENV }}
+          PROD_KEYCLOAK_DB_ENV: ${{ secrets.PROD_KEYCLOAK_DB_ENV }}
+        run: |
+          # Base64 encode secrets to safely pass through SSH
+          # Use tr -d '\n' for cross-platform compatibility
+          API_ENV_B64=$(echo -n "$PROD_API_ENV" | base64 | tr -d '\n')
+          WEB_ENV_B64=$(echo -n "$PROD_WEB_ENV" | base64 | tr -d '\n')
+          APP_DB_ENV_B64=$(echo -n "$PROD_APP_DB_ENV" | base64 | tr -d '\n')
+          KEYCLOAK_ENV_B64=$(echo -n "$PROD_KEYCLOAK_ENV" | base64 | tr -d '\n')
+          KEYCLOAK_DB_ENV_B64=$(echo -n "$PROD_KEYCLOAK_DB_ENV" | base64 | tr -d '\n')
+          
+          ssh ${PROD_USER}@${PROD_HOST} bash << EOF
+            set -e
+            ENV_PATH=\${ENV_FILE_PATH:-/etc/eigentask}
+            ENV_DIR="\${ENV_PATH}/prod"
+            
+            echo "Creating production environment files directory..."
+            sudo mkdir -p "\${ENV_DIR}"
+            sudo chown \${USER}:\${USER} "\${ENV_DIR}"
+            
+            echo "Deploying environment files from GitHub Secrets..."
+            
+            # Decode and write each env file
+            echo '${API_ENV_B64}' | base64 -d | sudo tee "\${ENV_DIR}/api.env" > /dev/null
+            echo '${WEB_ENV_B64}' | base64 -d | sudo tee "\${ENV_DIR}/web.env" > /dev/null
+            echo '${APP_DB_ENV_B64}' | base64 -d | sudo tee "\${ENV_DIR}/app-db.env" > /dev/null
+            echo '${KEYCLOAK_ENV_B64}' | base64 -d | sudo tee "\${ENV_DIR}/keycloak.env" > /dev/null
+            echo '${KEYCLOAK_DB_ENV_B64}' | base64 -d | sudo tee "\${ENV_DIR}/keycloak-db.env" > /dev/null
+            
+            # Set secure permissions
+            sudo chmod 600 "\${ENV_DIR}"/*.env
+            sudo chown \${USER}:\${USER} "\${ENV_DIR}"/*.env
+            
+            echo "Environment files deployed successfully!"
+            ls -la "\${ENV_DIR}"
+          EOF
+
+      - name: Deploy to production server
+        env:
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH || '/opt/eigentask' }}
+        run: |
+          ssh ${PROD_USER}@${PROD_HOST} << EOF
+            set -e
+            cd ${PROD_DEPLOY_PATH}
+            
+            ENV_PATH=\${ENV_FILE_PATH:-/etc/eigentask}
+            
+            echo "Verifying environment files exist..."
+            REQUIRED_ENV_FILES=(
+              "\${ENV_PATH}/prod/api.env"
+              "\${ENV_PATH}/prod/web.env"
+              "\${ENV_PATH}/prod/app-db.env"
+              "\${ENV_PATH}/prod/keycloak.env"
+              "\${ENV_PATH}/prod/keycloak-db.env"
+            )
+            for env_file in "\${REQUIRED_ENV_FILES[@]}"; do
+              if [ ! -f "\$env_file" ]; then
+                echo "ERROR: Required env file missing: \$env_file"
+                exit 1
+              fi
+            done
+            echo "All required env files found."
+            
+            echo "Pulling latest code from main branch..."
+            git fetch origin
+            git checkout main
+            git pull origin main
+            
+            echo "Creating Docker networks if they don't exist..."
+            docker network create eigentask-prod 2>/dev/null || true
+            
+            echo "Building and deploying production containers..."
+            ENV_FILE_PATH=\${ENV_PATH} docker compose -f docker-compose.prod.yml pull || true
+            ENV_FILE_PATH=\${ENV_PATH} docker compose -f docker-compose.prod.yml build --no-cache
+            ENV_FILE_PATH=\${ENV_PATH} docker compose -f docker-compose.prod.yml up -d
+            
+            echo "Waiting for services to be healthy..."
+            sleep 10
+            
+            echo "Checking service status..."
+            ENV_FILE_PATH=\${ENV_PATH} docker compose -f docker-compose.prod.yml ps
+            
+            echo "Deployment complete!"
+          EOF
+
+      - name: Verify deployment
+        env:
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH || '/opt/eigentask' }}
+        run: |
+          ssh ${PROD_USER}@${PROD_HOST} << EOF
+            cd ${PROD_DEPLOY_PATH}
+            
+            # Check if containers are running
+            if ! ENV_FILE_PATH=\${ENV_FILE_PATH:-/etc/eigentask} docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+              echo "ERROR: Some containers are not running!"
+              ENV_FILE_PATH=\${ENV_FILE_PATH:-/etc/eigentask} docker compose -f docker-compose.prod.yml ps
+              exit 1
+            fi
+            
+            echo "All services are running successfully"
+          EOF

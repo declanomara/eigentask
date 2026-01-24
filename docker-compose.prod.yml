@@ -1,0 +1,87 @@
+services:
+  keycloak-db:
+    image: postgres:15
+    container_name: eigentask-prod-keycloak-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak-db.env
+    volumes:
+      - keycloak_db_data_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.3
+    container_name: eigentask-prod-keycloak
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak.env
+    command: ["start", "--http-enabled=true"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes
+    depends_on:
+      - keycloak-db
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+  app-db:
+    image: postgres:16-alpine
+    container_name: eigentask-prod-app-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/app-db.env
+    volumes:
+      - app_db_data_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: eigentask-prod-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data_prod:/data
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+  api:
+    build:
+      context: ./api
+    container_name: eigentask-prod-api
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/api.env
+    depends_on:
+      - app-db
+      - redis
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: eigentask-prod-web
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/web.env
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - eigentask-prod
+
+volumes:
+  keycloak_db_data_prod:
+  app_db_data_prod:
+  redis_data_prod:
+
+networks:
+  eigentask-prod:
+    name: eigentask-prod
