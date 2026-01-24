@@ -121,6 +121,12 @@ Visit `http://localhost:3000`. Protected routes will redirect you to Keycloak fo
 
 Contributions are welcome, but must follow existing style conventions and design principles.
 
+## Style Conventions
+
+- **No emojis**: Emojis are not allowed in code, commit messages, PR descriptions, or documentation. Use GitHub Flavored Markdown (checkboxes, bold text, etc.) for formatting instead.
+- **PR titles must follow convention**: PR titles must start with a prefix matching the branch type: `feature:`, `fix:`, `docs:`, `refactor:`, or `chore:` followed by a brief description (e.g., `fix: Update CI workflow to run on staging branch PRs`).
+- Follow existing code style and formatting (enforced by linters and type checkers).
+
 ## Branch Naming Conventions
 
 All branches must follow a naming convention with a required prefix:

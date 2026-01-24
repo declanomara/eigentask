@@ -4,7 +4,7 @@ set -euo pipefail
 # Safe migration runner for Docker containers
 # This script runs migrations before starting the application
 
-echo "🔍 Checking database connection..."
+echo "Checking database connection..."
 
 # Determine Python command (use uv if available, otherwise python)
 if command -v uv &> /dev/null; then
@@ -33,10 +33,10 @@ async def check_db():
         async with engine.connect() as conn:
             await conn.execute(text('SELECT 1'))
         await engine.dispose()
-        print('✅ Database is ready')
+        print('Database is ready')
         exit(0)
     except Exception as e:
-        print(f'⏳ Waiting for database... ({e})')
+        print(f'Waiting for database... ({e})')
         exit(1)
 
 asyncio.run(check_db())
@@ -49,11 +49,11 @@ asyncio.run(check_db())
 done
 
 if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-    echo "❌ ERROR: Database not ready after $MAX_ATTEMPTS attempts"
+    echo "ERROR: Database not ready after $MAX_ATTEMPTS attempts"
     exit 1
 fi
 
-echo "📦 Running database migrations..."
+echo "Running database migrations..."
 
 # Check if we're using uv or pip
 if command -v uv &> /dev/null; then
@@ -71,14 +71,14 @@ echo "   Current revision: $CURRENT_REV"
 
 # Run migrations with error handling
 if $MIGRATE_CMD; then
-    echo "✅ Migrations completed successfully"
+    echo "Migrations completed successfully"
     # Show new current state
     NEW_REV=$($ALEMBIC_CMD current 2>&1 | head -1 || echo "unknown")
     if [ "$CURRENT_REV" != "$NEW_REV" ]; then
         echo "   Updated to: $NEW_REV"
     fi
 else
-    echo "❌ ERROR: Migration failed!"
+    echo "ERROR: Migration failed!"
     echo ""
     echo "   Current state: $CURRENT_REV"
     echo "   This is a safety check - the application will not start with failed migrations."
@@ -91,5 +91,5 @@ else
     exit 1
 fi
 
-echo "🚀 Starting application..."
+echo "Starting application..."
 exec "$@"
