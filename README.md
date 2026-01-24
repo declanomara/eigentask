@@ -127,14 +127,15 @@ Branch names are enforced by repository rules. Invalid branch names will be reje
 EigenTask uses a three-tier branch strategy:
 
 ```
-Feature Branch → Staging → Main (Production)
+Contribution Branch → Staging → Main (Production)
 ```
 
-### 1. Feature Branches
+### 1. Contribution Branches
 
-All development happens on feature branches with the naming convention above:
+All development happens on contribution branches with the naming convention above:
 
-- Create from `main`: `git checkout -b feature/my-feature main`
+- Create from `main`: `git checkout -b <type>/<description> main`
+  - Examples: `feature/user-dashboard`, `fix/auth-bug`, `docs/api-guide`, `refactor/auth-module`, `chore/update-deps`
 - Make changes with clear, focused commits
 - Open a Pull Request targeting `staging`
 - CI checks must pass (lint, type check, tests)
@@ -146,7 +147,7 @@ The `staging` branch serves as the integration and testing environment:
 
 - **Purpose**: Integration testing and validation before production
 - **Auto-deployment**: Changes to `staging` automatically deploy to the dev environment
-- **Merge source**: Feature branches merge here via PR
+- **Merge source**: Contribution branches merge here via PR
 - **Protection**: Requires PRs and CI checks, but allows faster iteration than `main`
 
 ### 3. Main Branch (Production)
@@ -164,8 +165,8 @@ The `main` branch represents production-ready code:
 
 ### Workflow Summary
 
-1. **Development**: Create a feature branch (e.g., `feature/new-feature`)
-2. **Integration**: Merge feature branch → `staging` via PR
+1. **Development**: Create a contribution branch using the appropriate prefix (e.g., `feature/new-feature`, `fix/bug-description`, `docs/guide-update`)
+2. **Integration**: Merge contribution branch → `staging` via PR
 3. **Testing**: Changes auto-deploy to dev environment for validation
 4. **Production**: Weekly automated merge `staging` → `main`
 5. **Deployment**: Production redeploys from `main` weekly
@@ -178,7 +179,12 @@ This workflow ensures:
 
 ## High Level Overview
 
-1) Create a feature branch from `main` using the naming convention (e.g., `feature/my-feature`).
+1) Create a contribution branch from `main` using the naming convention with the appropriate prefix:
+   - `feature/` for new features
+   - `fix/` for bug fixes
+   - `docs/` for documentation
+   - `refactor/` for refactoring
+   - `chore/` for maintenance tasks
 2) Make changes with clear, focused commits.
 3) If you change models:
    - Update SQLAlchemy models.
