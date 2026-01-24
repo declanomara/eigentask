@@ -121,8 +121,14 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
         fi
     fi
     
-    echo "Creating Docker network if it doesn't exist..."
-    docker network create ${NETWORK_NAME} 2>/dev/null || true
+    echo "Ensuring Docker network exists with correct labels..."
+    # Remove network if it exists without proper Compose labels, then let Compose create it
+    if docker network inspect ${NETWORK_NAME} >/dev/null 2>&1; then
+        if ! docker network inspect ${NETWORK_NAME} | grep -q "com.docker.compose.network"; then
+            echo "Removing existing network ${NETWORK_NAME} (missing Compose labels)..."
+            docker network rm ${NETWORK_NAME} 2>/dev/null || true
+        fi
+    fi
     
     echo "Checking disk space..."
     df -h
