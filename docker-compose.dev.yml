@@ -5,19 +5,32 @@ services:
     env_file: [./envs/keycloak-db.dev.env]
     volumes:
       - keycloak_db_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak-db-user -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
     container_name: eigentask-keycloak-dev
     env_file: [./envs/keycloak.dev.env]
-    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--import-realm"]
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--health-enabled=true", "--import-realm"]
     ports:
       - "8080:8080"
+      - "9000:9000"
     volumes:
       - ./keycloak/realm-export:/opt/keycloak/data/import
     depends_on:
-      - keycloak-db
+      keycloak-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "{ printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   app-db:
@@ -56,6 +69,8 @@ services:
       app-db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     volumes:
       - ./api:/app
