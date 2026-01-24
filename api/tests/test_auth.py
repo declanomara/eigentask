@@ -127,9 +127,9 @@ class TestAuthCallback:
             follow_redirects=False,
         )
 
-        # Should redirect to home without setting session
+        # Should redirect to frontend origin without setting session
         assert response.status_code == 302
-        assert response.headers["location"] == "/"
+        assert response.headers["location"] == "http://localhost:3000/"
 
     async def test_callback_without_state_in_session_fails(
         self,
@@ -143,7 +143,7 @@ class TestAuthCallback:
         )
 
         assert response.status_code == 302
-        assert response.headers["location"] == "/"
+        assert response.headers["location"] == "http://localhost:3000/"
 
 
 @pytest.mark.integration

@@ -74,6 +74,8 @@ Notes:
 - Copy and adjust the example env files in `envs/` as needed.
   - `envs/api.dev.env` (API, Redis, Postgres, OIDC settings)
   - `envs/web.dev.env` (Web → API origins)
+  - `envs/keycloak.dev.env` (Keycloak admin credentials - already configured for local dev)
+  - `envs/keycloak-db.dev.env` (Keycloak database - already configured for local dev)
 
 3) Start services
 
@@ -83,10 +85,24 @@ docker compose -f docker-compose.dev.yml up -d --build
 
 This runs:
 
+- Keycloak DB at `keycloak-db:5432`
+- Keycloak at `http://localhost:8080` (admin: `admin` / `admin`)
 - Postgres at `app-db:5432`
 - Redis at `redis:6379`
 - API at `http://localhost:8000`
 - Web at `http://localhost:3000`
+
+**Note:** Keycloak automatically imports the `eigentask` realm on first startup (configured in `keycloak/realm-export/eigentask-realm.json`). This includes:
+- The `eigentask` realm
+- The `eigentask` client with proper redirect URIs
+- Test users:
+  - `testuser` / `password` (email: `test@example.com`)
+  - `admin` / `admin` (email: `admin@example.com`)
+
+If you need to modify the realm configuration, you can:
+1. Export the realm from Keycloak admin console (Realm Settings → Export)
+2. Update `keycloak/realm-export/eigentask-realm.json`
+3. Restart Keycloak (it will re-import only if the realm doesn't exist)
 
 4) Apply database migrations
 
@@ -96,9 +112,9 @@ This runs:
 
 The API also creates tables on startup as a safeguard, but you should treat Alembic migrations as the source of truth and always run them.
 
-5) Open the app
+6) Open the app
 
-Visit `http://localhost:3000`. Protected routes will redirect you to Keycloak for login (see OIDC settings in `envs/api.dev.env`).
+Visit `http://localhost:3000`. Protected routes will redirect you to Keycloak for login. Use the test user you created (or create one in Keycloak admin console).
 
 
 # Contribution guide
