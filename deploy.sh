@@ -38,14 +38,32 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} bash -s << EOF
     sudo mkdir -p "\${ENV_DIR}"
     sudo chown \${USER}:\${USER} "\${ENV_DIR}"
     
-    echo "Deploying environment files from GitHub Secrets..."
-    
-    # Write each env file (GitHub automatically masks secrets in logs)
-    echo "$API_ENV" | sudo tee "\${ENV_DIR}/api.env" > /dev/null
-    echo "$WEB_ENV" | sudo tee "\${ENV_DIR}/web.env" > /dev/null
-    echo "$APP_DB_ENV" | sudo tee "\${ENV_DIR}/app-db.env" > /dev/null
-    echo "$KEYCLOAK_ENV" | sudo tee "\${ENV_DIR}/keycloak.env" > /dev/null
-    echo "$KEYCLOAK_DB_ENV" | sudo tee "\${ENV_DIR}/keycloak-db.env" > /dev/null
+            echo "Deploying environment files from GitHub Secrets..."
+            
+            # Write each env file (GitHub automatically masks secrets in logs)
+            # Use cat with heredoc to preserve all content including newlines
+            cat > /tmp/api.env << 'FILE_EOF'
+          ${API_ENV}
+          FILE_EOF
+            cat > /tmp/web.env << 'FILE_EOF'
+          ${WEB_ENV}
+          FILE_EOF
+            cat > /tmp/app-db.env << 'FILE_EOF'
+          ${APP_DB_ENV}
+          FILE_EOF
+            cat > /tmp/keycloak.env << 'FILE_EOF'
+          ${KEYCLOAK_ENV}
+          FILE_EOF
+            cat > /tmp/keycloak-db.env << 'FILE_EOF'
+          ${KEYCLOAK_DB_ENV}
+          FILE_EOF
+            
+            # Move files to final location
+            sudo mv /tmp/api.env "\${ENV_DIR}/api.env"
+            sudo mv /tmp/web.env "\${ENV_DIR}/web.env"
+            sudo mv /tmp/app-db.env "\${ENV_DIR}/app-db.env"
+            sudo mv /tmp/keycloak.env "\${ENV_DIR}/keycloak.env"
+            sudo mv /tmp/keycloak-db.env "\${ENV_DIR}/keycloak-db.env"
     
     # Set secure permissions
     sudo chmod 600 "\${ENV_DIR}"/*.env
@@ -106,9 +124,33 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     echo "Creating Docker network if it doesn't exist..."
     docker network create ${NETWORK_NAME} 2>/dev/null || true
     
+    echo "Checking disk space..."
+    df -h
+    
+    echo "Cleaning up Docker to free space..."
+    docker system prune -af --volumes || true
+    
+    echo "Checking disk space..."
+    df -h
+    
+    echo "Cleaning up Docker to free space..."
+    docker system prune -af --volumes || true
+    
+    echo "Checking Docker Buildx version..."
+    docker buildx version || echo "Buildx not installed or outdated"
+    
     echo "Building and deploying ${ENV} containers..."
     ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} pull || true
-    ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} build --no-cache
+    
+    # Use buildx if available and version is sufficient, otherwise use regular build
+    if docker buildx version 2>/dev/null | grep -q "v0\.[1-9][7-9]\|v[1-9]"; then
+        echo "Using Docker Buildx for build..."
+        ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} build
+    else
+        echo "Buildx not available or version too old, using regular build..."
+        ENV_FILE_PATH=\${ENV_PATH} DOCKER_BUILDKIT=0 docker compose -f ${COMPOSE_FILE} build
+    fi
+    
     ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} up -d
     
     echo "Waiting for services to be healthy..."
