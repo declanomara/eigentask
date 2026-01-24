@@ -122,10 +122,73 @@ Run these before opening a PR:
 - Backend (FastAPI):
   - Install deps incl. dev tools: `cd api && uv sync --all-groups`
   - Lint: `cd api && uv run ruff check .`
-  - Tests: `cd api && uv run pytest` (when tests are present)
+  - Tests: `cd api && uv run pytest`
+  - Run specific test file: `cd api && uv run pytest tests/test_tasks.py`
+  - Run tests with coverage: `cd api && uv run pytest --cov=app --cov-report=term-missing`
 - Frontend (SvelteKit):
   - Install deps: `cd web && npm install`
   - Lint/type-check: `cd web && npm run check`
+
+## Testing Guide
+
+### Backend Integration Tests
+
+The API includes comprehensive integration tests covering:
+- Task CRUD operations (create, read, update, delete)
+- User authentication and authorization
+- OIDC authentication flow
+- Session management
+
+**Test Infrastructure:**
+- Uses SQLite in-memory database for fast, isolated tests
+- FakeRedis for mocking Redis sessions
+- Mocked OIDC/JWT authentication for testing protected endpoints
+- Transaction rollback after each test for isolation
+
+**Running Tests:**
+
+```bash
+# Run all tests
+cd api && uv run pytest
+
+# Run with verbose output
+cd api && uv run pytest -v
+
+# Run specific test class
+cd api && uv run pytest tests/test_tasks.py::TestTasksList
+
+# Run tests marked as integration
+cd api && uv run pytest -m integration
+
+# Run tests with coverage report
+cd api && uv run pytest --cov=app --cov-report=html
+# Then open htmlcov/index.html in your browser
+```
+
+**Writing New Tests:**
+
+1. Create test files in `api/tests/` with the naming pattern `test_*.py`
+2. Use fixtures from `conftest.py`:
+   - `authenticated_client`: HTTP client with mocked authentication
+   - `db_session`: Database session with transaction rollback
+   - `fake_redis`: Mocked Redis instance
+3. Use factories from `tests/factories.py` to create test data
+4. Mark integration tests with `@pytest.mark.integration`
+
+Example test structure:
+```python
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.integration
+async def test_my_endpoint(
+    authenticated_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test description."""
+    response = await authenticated_client.get("/my-endpoint")
+    assert response.status_code == 200
+```
 
 # Licensing
 
