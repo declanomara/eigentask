@@ -105,15 +105,88 @@ Visit `http://localhost:3000`. Protected routes will redirect you to Keycloak fo
 
 Contributions are welcome, but must follow existing style conventions and design principles.
 
+## Branch Naming Conventions
+
+All branches must follow a naming convention with a required prefix:
+
+- **`feature/`** - New features and enhancements
+  - Example: `feature/user-dashboard`, `feature/task-prioritization`
+- **`fix/`** - Bug fixes
+  - Example: `fix/session-timeout`, `fix/auth-token-expiry`
+- **`docs/`** - Documentation updates
+  - Example: `docs/api-documentation`, `docs/deployment-guide`
+- **`refactor/`** - Code refactoring (no new features)
+  - Example: `refactor/auth-module`, `refactor/database-layer`
+- **`chore/`** - Maintenance tasks, dependencies, configuration
+  - Example: `chore/update-dependencies`, `chore/ci-improvements`
+
+Branch names are enforced by repository rules. Invalid branch names will be rejected.
+
+## Branch Lifecycle
+
+EigenTask uses a three-tier branch strategy:
+
+```
+Feature Branch → Staging → Main (Production)
+```
+
+### 1. Feature Branches
+
+All development happens on feature branches with the naming convention above:
+
+- Create from `main`: `git checkout -b feature/my-feature main`
+- Make changes with clear, focused commits
+- Open a Pull Request targeting `staging`
+- CI checks must pass (lint, type check, tests)
+- After review and approval, merge into `staging`
+
+### 2. Staging Branch
+
+The `staging` branch serves as the integration and testing environment:
+
+- **Purpose**: Integration testing and validation before production
+- **Auto-deployment**: Changes to `staging` automatically deploy to the dev environment
+- **Merge source**: Feature branches merge here via PR
+- **Protection**: Requires PRs and CI checks, but allows faster iteration than `main`
+
+### 3. Main Branch (Production)
+
+The `main` branch represents production-ready code:
+
+- **Purpose**: Production deployments
+- **Merge source**: Weekly automated merges from `staging`
+- **Protection**: Strict protection rules requiring:
+  - Pull request reviews
+  - All CI checks passing
+  - Up-to-date branches
+  - Linear history
+- **Deployment**: Production deployments occur weekly after staging → main merges
+
+### Workflow Summary
+
+1. **Development**: Create a feature branch (e.g., `feature/new-feature`)
+2. **Integration**: Merge feature branch → `staging` via PR
+3. **Testing**: Changes auto-deploy to dev environment for validation
+4. **Production**: Weekly automated merge `staging` → `main`
+5. **Deployment**: Production redeploys from `main` weekly
+
+This workflow ensures:
+- ✅ Fast feedback through dev environment deployments
+- ✅ Controlled production releases
+- ✅ Quality gates at each stage
+- ✅ Clear separation between development, staging, and production
+
 ## High Level Overview
 
-1) Create a feature branch from `main`.
+1) Create a feature branch from `main` using the naming convention (e.g., `feature/my-feature`).
 2) Make changes with clear, focused commits.
 3) If you change models:
    - Update SQLAlchemy models.
    - Generate a migration: `./migrate.sh revision "Your message"`
    - Review and apply: `./migrate.sh upgrade`
-4) Open a PR with a concise description, screenshots if UI changes, and any migration notes.
+4) Open a PR targeting `staging` with a concise description, screenshots if UI changes, and any migration notes.
+5) After merge to `staging`, changes will auto-deploy to the dev environment for testing.
+6) Weekly, `staging` is automatically merged to `main` for production deployment.
 
 ## Local checks
 
