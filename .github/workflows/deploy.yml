@@ -59,6 +59,8 @@ jobs:
           DEPLOY_HOST: ${{ secrets.HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/eigentask' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
           API_ENV: ${{ secrets.API_ENV }}
           WEB_ENV: ${{ secrets.WEB_ENV }}

@@ -8,13 +8,14 @@ set -euo pipefail
 ENV="${ENVIRONMENT:-staging}"
 ENV_DIR="${ENV}"
 
-# Map environment to branch and compose file
+# Use the branch that triggered the deployment (or default based on environment)
+DEPLOY_BRANCH="${GITHUB_REF_NAME:-${ENV == 'production' && 'main' || 'staging'}}"
+
+# Map environment to compose file and network
 if [ "$ENV" = "production" ]; then
-    BRANCH="main"
     COMPOSE_FILE="docker-compose.prod.yml"
     NETWORK_NAME="eigentask-prod"
 else
-    BRANCH="staging"
     COMPOSE_FILE="docker-compose.staging.yml"
     NETWORK_NAME="eigentask-staging"
 fi
@@ -75,19 +76,25 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
         mkdir -p $(dirname ${DEPLOY_PATH})
         git clone https://github.com/${GITHUB_REPOSITORY:-declanomara/eigentask}.git ${DEPLOY_PATH}
         cd ${DEPLOY_PATH}
-        git checkout ${BRANCH}
+        git checkout ${DEPLOY_BRANCH} || git checkout -b ${DEPLOY_BRANCH} origin/${DEPLOY_BRANCH} || git checkout ${GITHUB_SHA}
     elif [ ! -d "${DEPLOY_PATH}/.git" ]; then
         echo "Directory exists but is not a git repository. Removing and cloning..."
         rm -rf ${DEPLOY_PATH}
         git clone https://github.com/${GITHUB_REPOSITORY:-declanomara/eigentask}.git ${DEPLOY_PATH}
         cd ${DEPLOY_PATH}
-        git checkout ${BRANCH}
+        git checkout ${DEPLOY_BRANCH} || git checkout -b ${DEPLOY_BRANCH} origin/${DEPLOY_BRANCH} || git checkout ${GITHUB_SHA}
     else
-        echo "Directory is a git repository. Pulling latest code from ${BRANCH} branch..."
+        echo "Directory is a git repository. Pulling latest code from ${DEPLOY_BRANCH} branch..."
         cd ${DEPLOY_PATH}
         git fetch origin
-        git checkout ${BRANCH}
-        git pull origin ${BRANCH}
+        # Try to checkout the branch, fallback to specific commit if branch doesn't exist
+        if git show-ref --verify --quiet refs/remotes/origin/${DEPLOY_BRANCH}; then
+            git checkout ${DEPLOY_BRANCH}
+            git pull origin ${DEPLOY_BRANCH}
+        else
+            echo "Branch ${DEPLOY_BRANCH} doesn't exist remotely, checking out commit ${GITHUB_SHA}"
+            git checkout ${GITHUB_SHA}
+        fi
     fi
     
     echo "Creating Docker network if it doesn't exist..."
