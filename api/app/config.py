@@ -1,7 +1,8 @@
 import os
 from functools import lru_cache
+from typing import Any
 
-from pydantic import HttpUrl
+from pydantic import HttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -10,15 +11,43 @@ class Settings(BaseSettings):
 
     # App
     environment: str = "development"
-    frontend_origin: HttpUrl = "http://localhost:5173"
-    backend_origin: HttpUrl = "http://localhost:8000"
+    frontend_origin: HttpUrl
+    backend_origin: HttpUrl
 
     # OIDC
-    keycloak_url: HttpUrl = "https://auth.eigentask.com"
+    keycloak_url: HttpUrl
     keycloak_realm: str = "eigentask"
     keycloak_client_id: str = "eigentask"
     keycloak_client_secret: str | None = None
-    callback_url: HttpUrl = "http://localhost:8000/auth/callback"
+    callback_url: HttpUrl
+
+    @field_validator("frontend_origin", "backend_origin", "keycloak_url", "callback_url", mode="before")
+    @classmethod
+    def validate_url(cls, v: Any) -> Any:
+        """Allow string URLs to be converted to HttpUrl."""
+        if isinstance(v, str):
+            return v
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        # Default values for URLs
+        env_file = ".env"
+        extra = "ignore"
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize settings with defaults."""
+        # Set defaults if not provided
+        if "frontend_origin" not in kwargs:
+            kwargs["frontend_origin"] = "http://localhost:5173"
+        if "backend_origin" not in kwargs:
+            kwargs["backend_origin"] = "http://localhost:8000"
+        if "keycloak_url" not in kwargs:
+            kwargs["keycloak_url"] = "https://auth.eigentask.com"
+        if "callback_url" not in kwargs:
+            kwargs["callback_url"] = "http://localhost:8000/auth/callback"
+        super().__init__(**kwargs)
 
     # Session/Cookies
     session_secret: str = os.getenv("SESSION_SECRET", "dev-insecure-session-secret")

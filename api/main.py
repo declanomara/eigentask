@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,10 +16,10 @@ from app.routers import users as users_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:
+async def lifespan(app_instance: FastAPI) -> AsyncIterator[None]:
     """Initialize shared state on startup and cleanup on shutdown."""
     # Initialize shared Redis client
-    app.state.redis = redis.from_url(settings.redis_url, decode_responses=True)
+    app_instance.state.redis = redis.from_url(settings.redis_url, decode_responses=True)
     # Create database tables if they do not exist (no Alembic yet)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -26,15 +27,15 @@ async def lifespan(app: FastAPI) -> None:
         yield
     finally:
         # Close Redis client gracefully on shutdown
-        await app.state.redis.aclose()
+        await app_instance.state.redis.aclose()
 
 
-app = FastAPI(title="Eigentask API", description="API for Eigentask", lifespan=lifespan)
+application = FastAPI(title="Eigentask API", description="API for Eigentask", lifespan=lifespan)
 
 settings = get_settings()
 
 # Minimal session support for PKCE/state
-app.add_middleware(
+application.add_middleware(
     SessionMiddleware,
     secret_key=settings.session_secret,
     same_site="lax",
@@ -42,7 +43,7 @@ app.add_middleware(
 )
 
 # CORS for frontend dev server to call protected endpoints with credentials
-app.add_middleware(
+application.add_middleware(
     CORSMiddleware,
     allow_origins=[str(settings.frontend_origin).removesuffix("/")],
     allow_credentials=True,
@@ -51,7 +52,10 @@ app.add_middleware(
 )
 
 # Register API routers
-app.include_router(auth_router.router)
-app.include_router(users_router.router)
-app.include_router(root_router.router)
-app.include_router(tasks_router.router)
+application.include_router(auth_router.router)
+application.include_router(users_router.router)
+application.include_router(root_router.router)
+application.include_router(tasks_router.router)
+
+# Export as 'app' for backwards compatibility with uvicorn
+app = application  # type: ignore[misc]

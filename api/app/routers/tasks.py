@@ -25,7 +25,8 @@ async def get_tasks(
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[TaskRead]:
     """List tasks owned by the current user."""
-    return await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
+    tasks = await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
+    return [TaskRead.model_validate(task) for task in tasks]
 
 
 @router.post("/", status_code=201)
@@ -39,7 +40,7 @@ async def create_task(
         task = await create_task_for_user(db_session, current_user["sub"], payload)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return task
+    return TaskRead.model_validate(task)
 
 
 @router.delete("/{task_id}", status_code=204)
@@ -70,7 +71,7 @@ async def update_task(
         updated = await update_task_for_user(db_session, task, payload)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return updated
+    return TaskRead.model_validate(updated)
 
 
 # Support PUT for clients that use full updates
