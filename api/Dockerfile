@@ -1,4 +1,4 @@
-# API Dockerfile
+# API Dockerfile - Production
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -11,8 +11,13 @@ COPY pyproject.toml ./
 RUN pip install --upgrade pip \
     && pip install .
 
-# Copy source
+# Copy source and migration entrypoint
 COPY . .
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8000
+
+# Use entrypoint to run migrations before starting
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
