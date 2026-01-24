@@ -11,17 +11,18 @@ class Settings(BaseSettings):
 
     # App
     environment: str = "development"
-    frontend_origin: HttpUrl
-    backend_origin: HttpUrl
+    frontend_origin: HttpUrl  # Default set below
+    backend_origin: HttpUrl  # Default set below
 
     # OIDC
-    keycloak_url: HttpUrl
+    keycloak_url: HttpUrl  # Default set below
+    keycloak_public_url: HttpUrl | None = None  # If set, browser-facing URLs are rewritten from keycloak_url to this
     keycloak_realm: str = "eigentask"
     keycloak_client_id: str = "eigentask"
     keycloak_client_secret: str | None = None
-    callback_url: HttpUrl
+    callback_url: HttpUrl  # Default set below
 
-    @field_validator("frontend_origin", "backend_origin", "keycloak_url", "callback_url", mode="before")
+    @field_validator("frontend_origin", "backend_origin", "keycloak_url", "keycloak_public_url", "callback_url", mode="before")
     @classmethod
     def validate_url(cls, v: Any) -> Any:
         """Allow string URLs to be converted to HttpUrl."""
@@ -35,19 +36,13 @@ class Settings(BaseSettings):
         # Default values for URLs
         env_file = ".env"
         extra = "ignore"
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize settings with defaults."""
-        # Set defaults if not provided
-        if "frontend_origin" not in kwargs:
-            kwargs["frontend_origin"] = "http://localhost:3000"
-        if "backend_origin" not in kwargs:
-            kwargs["backend_origin"] = "http://localhost:8000"
-        if "keycloak_url" not in kwargs:
-            kwargs["keycloak_url"] = "https://auth.eigentask.com"
-        if "callback_url" not in kwargs:
-            kwargs["callback_url"] = "http://localhost:8000/auth/callback"
-        super().__init__(**kwargs)
+    
+    # Set defaults using Pydantic's Field default mechanism
+    # These will be used if environment variables are not set
+    frontend_origin: HttpUrl = "http://localhost:3000"  # type: ignore[assignment]
+    backend_origin: HttpUrl = "http://localhost:8000"  # type: ignore[assignment]
+    keycloak_url: HttpUrl = "https://auth.eigentask.com"  # type: ignore[assignment]
+    callback_url: HttpUrl = "http://localhost:8000/auth/callback"  # type: ignore[assignment]
 
     # Session/Cookies
     session_secret: str = os.getenv("SESSION_SECRET", "dev-insecure-session-secret")

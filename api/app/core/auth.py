@@ -75,18 +75,38 @@ settings = get_settings()
 
 
 async def get_discovery_document() -> OIDCDiscoveryDocument:
-    """Fetch and cache the realm OIDC discovery document."""
+    """Fetch and cache the realm OIDC discovery document.
+
+    In Docker environments, the API accesses Keycloak via internal hostname (e.g., keycloak:8080),
+    but browsers access it via public URL (e.g., localhost:8080). Keycloak returns URLs based
+    on how it's accessed, so we must rewrite them:
+
+    - issuer: Must match what's in tokens (browser accessed Keycloak, so public URL)
+    - authorization_endpoint, end_session_endpoint: Browser redirects (public URL)
+    - token_endpoint, jwks_uri: Server-to-server calls (internal URL, no change needed)
+
+    In production with a single URL (e.g., https://auth.example.com), no rewriting is needed.
+    """
     cached = _discovery_cache.get()
     if cached is not None:
         return cast("OIDCDiscoveryDocument", cached)
 
-    keycloak_base = str(settings.keycloak_url).removesuffix("/")
-    url = f"{keycloak_base}/realms/{settings.keycloak_realm}/.well-known/openid-configuration"
+    internal_base = str(settings.keycloak_url).removesuffix("/")
+    url = f"{internal_base}/realms/{settings.keycloak_realm}/.well-known/openid-configuration"
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=10)
             resp.raise_for_status()
             data = cast("OIDCDiscoveryDocument", resp.json())
+
+            # Rewrite browser-facing URLs when public URL differs from internal URL
+            if settings.keycloak_public_url:
+                public_base = str(settings.keycloak_public_url).removesuffix("/")
+                if public_base != internal_base:
+                    for key in ("issuer", "authorization_endpoint", "end_session_endpoint"):
+                        if key in data:
+                            data[key] = data[key].replace(internal_base, public_base)
+
             _discovery_cache.set(data, ttl=timedelta(hours=1))
             return data
     except httpx.HTTPError as exc:
@@ -208,13 +228,13 @@ async def verify_token(
         jwks = await get_jwks()
         public_key_pem = get_public_key(token, jwks)
         discovery = await get_discovery_document()
+
         payload = jwt.decode(
             token,
             public_key_pem,
             algorithms=["RS256"],
             audience=settings.keycloak_client_id,
             issuer=discovery["issuer"],
-            options={"verify_exp": True, "verify_aud": True, "verify_iss": True},
         )
         return cast("dict[str, Any]", payload)
     except jwt.ExpiredSignatureError as e:
