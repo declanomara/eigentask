@@ -58,6 +58,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.USER }}
           DEPLOY_HOST: ${{ secrets.HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/eigentask' }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
           API_ENV: ${{ secrets.API_ENV }}
           WEB_ENV: ${{ secrets.WEB_ENV }}

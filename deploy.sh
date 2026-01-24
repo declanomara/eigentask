@@ -51,8 +51,6 @@ EOF
 # Deploy application
 ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     set -e
-    cd ${DEPLOY_PATH}
-    
     ENV_PATH=\${ENV_FILE_PATH:-/etc/eigentask}
     
     echo "Verifying environment files exist..."
@@ -71,10 +69,26 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     done
     echo "All required env files found."
     
-    echo "Pulling latest code from ${BRANCH} branch..."
-    git fetch origin
-    git checkout ${BRANCH}
-    git pull origin ${BRANCH}
+    echo "Checking if deployment directory exists and is a git repository..."
+    if [ ! -d "${DEPLOY_PATH}" ]; then
+        echo "Deployment directory does not exist. Creating parent directory and cloning repository..."
+        mkdir -p $(dirname ${DEPLOY_PATH})
+        git clone https://github.com/${GITHUB_REPOSITORY:-declanomara/eigentask}.git ${DEPLOY_PATH}
+        cd ${DEPLOY_PATH}
+        git checkout ${BRANCH}
+    elif [ ! -d "${DEPLOY_PATH}/.git" ]; then
+        echo "Directory exists but is not a git repository. Removing and cloning..."
+        rm -rf ${DEPLOY_PATH}
+        git clone https://github.com/${GITHUB_REPOSITORY:-declanomara/eigentask}.git ${DEPLOY_PATH}
+        cd ${DEPLOY_PATH}
+        git checkout ${BRANCH}
+    else
+        echo "Directory is a git repository. Pulling latest code from ${BRANCH} branch..."
+        cd ${DEPLOY_PATH}
+        git fetch origin
+        git checkout ${BRANCH}
+        git pull origin ${BRANCH}
+    fi
     
     echo "Creating Docker network if it doesn't exist..."
     docker network create ${NETWORK_NAME} 2>/dev/null || true
