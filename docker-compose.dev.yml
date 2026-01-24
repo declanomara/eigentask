@@ -1,4 +1,25 @@
 services:
+  keycloak-db:
+    image: postgres:15-alpine
+    container_name: eigentask-keycloak-db-dev
+    env_file: [./envs/keycloak-db.dev.env]
+    volumes:
+      - keycloak_db_data_dev:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.3
+    container_name: eigentask-keycloak-dev
+    env_file: [./envs/keycloak.dev.env]
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--import-realm"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export:/opt/keycloak/data/import
+    depends_on:
+      - keycloak-db
+    restart: unless-stopped
+
   app-db:
     image: postgres:16-alpine
     container_name: eigentask-app-db-dev
@@ -60,6 +81,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  keycloak_db_data_dev:
   app_db_data_dev:
   redis_data_dev:
   web_node_modules:
