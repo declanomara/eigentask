@@ -9,7 +9,13 @@ ENV="${ENVIRONMENT:-staging}"
 ENV_DIR="${ENV}"
 
 # Use the branch that triggered the deployment (or default based on environment)
-DEPLOY_BRANCH="${GITHUB_REF_NAME:-${ENV == 'production' && 'main' || 'staging'}}"
+if [ -n "${GITHUB_REF_NAME:-}" ]; then
+    DEPLOY_BRANCH="${GITHUB_REF_NAME}"
+elif [ "$ENV" = "production" ]; then
+    DEPLOY_BRANCH="main"
+else
+    DEPLOY_BRANCH="staging"
+fi
 
 # Map environment to compose file and network
 if [ "$ENV" = "production" ]; then
