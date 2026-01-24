@@ -26,7 +26,7 @@ else
     NETWORK_NAME="eigentask-staging"
 fi
 
-echo "Deploying to ${ENV} environment (branch: ${BRANCH})"
+echo "Deploying to ${ENV} environment (branch: ${DEPLOY_BRANCH})"
 
 # Deploy environment files
 ssh ${DEPLOY_USER}@${DEPLOY_HOST} bash -s << EOF
