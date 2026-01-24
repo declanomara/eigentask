@@ -6,14 +6,22 @@ set -euo pipefail
 
 echo "🔍 Checking database connection..."
 
+# Determine Python command (use uv if available, otherwise python)
+if command -v uv &> /dev/null; then
+    PYTHON_CMD="uv run python"
+else
+    PYTHON_CMD="python"
+fi
+
 # Wait for database to be ready (with timeout)
 MAX_ATTEMPTS=30
 ATTEMPT=0
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-    if python -c "
+    if $PYTHON_CMD -c "
 import asyncio
 import os
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
 
 async def check_db():
     db_url = os.getenv('DATABASE_URL')
@@ -23,7 +31,7 @@ async def check_db():
     try:
         engine = create_async_engine(db_url, pool_pre_ping=True)
         async with engine.connect() as conn:
-            await conn.execute('SELECT 1')
+            await conn.execute(text('SELECT 1'))
         await engine.dispose()
         print('✅ Database is ready')
         exit(0)
