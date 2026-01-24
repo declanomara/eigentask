@@ -57,6 +57,9 @@ ignore = [
     "S106",      # Allow hardcoded passwords in test fixtures
     "PLR0913",   # Allow many arguments in test factories
 ]
+"app/config.py" = [
+    "ANN401",    # Allow Any in Pydantic validators and __init__
+]
 
 [tool.ty.environment]
 extra-paths = [".venv/"]
