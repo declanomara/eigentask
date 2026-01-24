@@ -1,36 +1,59 @@
 # Environment Files Automation Setup
 
-This document explains how to set up automated deployment of environment files using GitHub Secrets.
+This document explains how to set up automated deployment of environment files using GitHub Environments and Secrets.
 
 ## Overview
 
-Instead of manually creating `.env` files on the server, the deployment workflows automatically create them from GitHub Secrets. This provides:
+Instead of manually creating `.env` files on the server, the deployment workflows automatically create them from GitHub Environment Secrets. This provides:
 
 - ✅ **Automated deployment** - No manual file creation needed
-- ✅ **Version controlled secrets** - Changes tracked in GitHub (though secret values are hidden)
+- ✅ **Environment isolation** - Separate secrets for staging and production
 - ✅ **Secure storage** - Secrets stored in GitHub's encrypted secret store
 - ✅ **Easy updates** - Update secrets in GitHub, next deployment applies them
 - ✅ **Audit trail** - GitHub Actions logs show when secrets were deployed (but not their values)
+- ✅ **Simpler configuration** - No base64 encoding needed, GitHub handles secret masking
 
-## Required GitHub Secrets
+## Required GitHub Environments
 
-You need to create the following secrets in GitHub (Settings → Secrets and variables → Actions):
+The workflows use GitHub Environments to organize secrets. You need to create two environments:
+
+1. **`staging`** - For staging deployments
+2. **`production`** - For production deployments
+
+## Setting Up Environments
+
+1. Go to: **Settings → Environments**
+2. Click **"New environment"**
+3. Create **`staging`** environment
+4. Create **`production`** environment
+
+## Required Secrets per Environment
+
+For each environment, add the following secrets:
 
 ### Staging Environment Secrets
 
-- `STAGING_API_ENV` - Complete contents of `/etc/eigentask/staging/api.env`
-- `STAGING_WEB_ENV` - Complete contents of `/etc/eigentask/staging/web.env`
-- `STAGING_APP_DB_ENV` - Complete contents of `/etc/eigentask/staging/app-db.env`
-- `STAGING_KEYCLOAK_ENV` - Complete contents of `/etc/eigentask/staging/keycloak.env`
-- `STAGING_KEYCLOAK_DB_ENV` - Complete contents of `/etc/eigentask/staging/keycloak-db.env`
+- `SSH_PRIVATE_KEY` - SSH private key for accessing the staging server
+- `HOST` - Hostname or IP address of the staging server
+- `USER` - SSH username for the staging server
+- `DEPLOY_PATH` - (Optional) Path to deployment directory (defaults to `/opt/eigentask`)
+- `API_ENV` - Complete contents of `/etc/eigentask/staging/api.env`
+- `WEB_ENV` - Complete contents of `/etc/eigentask/staging/web.env`
+- `APP_DB_ENV` - Complete contents of `/etc/eigentask/staging/app-db.env`
+- `KEYCLOAK_ENV` - Complete contents of `/etc/eigentask/staging/keycloak.env`
+- `KEYCLOAK_DB_ENV` - Complete contents of `/etc/eigentask/staging/keycloak-db.env`
 
 ### Production Environment Secrets
 
-- `PROD_API_ENV` - Complete contents of `/etc/eigentask/prod/api.env`
-- `PROD_WEB_ENV` - Complete contents of `/etc/eigentask/prod/web.env`
-- `PROD_APP_DB_ENV` - Complete contents of `/etc/eigentask/prod/app-db.env`
-- `PROD_KEYCLOAK_ENV` - Complete contents of `/etc/eigentask/prod/keycloak.env`
-- `PROD_KEYCLOAK_DB_ENV` - Complete contents of `/etc/eigentask/prod/keycloak-db.env`
+- `SSH_PRIVATE_KEY` - SSH private key for accessing the production server
+- `HOST` - Hostname or IP address of the production server
+- `USER` - SSH username for the production server
+- `DEPLOY_PATH` - (Optional) Path to deployment directory (defaults to `/opt/eigentask`)
+- `API_ENV` - Complete contents of `/etc/eigentask/prod/api.env`
+- `WEB_ENV` - Complete contents of `/etc/eigentask/prod/web.env`
+- `APP_DB_ENV` - Complete contents of `/etc/eigentask/prod/app-db.env`
+- `KEYCLOAK_ENV` - Complete contents of `/etc/eigentask/prod/keycloak.env`
+- `KEYCLOAK_DB_ENV` - Complete contents of `/etc/eigentask/prod/keycloak-db.env`
 
 ## How to Add Secrets
 
@@ -47,19 +70,31 @@ BACKEND_ORIGIN=https://staging-api.eigentask.com
 # ... etc
 ```
 
-### Step 2: Copy File Contents to GitHub Secrets
+### Step 2: Add Secrets to Environments
 
-For each file, copy its **entire contents** (including all lines) and paste into the corresponding GitHub Secret.
+For each environment, add the secrets:
 
-**Example for `STAGING_API_ENV`:**
+**For Staging Environment:**
 
-1. Go to GitHub → Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Name: `STAGING_API_ENV`
-4. Value: Paste the entire contents of your `staging/api.env` file
-5. Click "Add secret"
+1. Go to GitHub → Settings → Environments
+2. Click on **`staging`** environment
+3. In the "Secrets" section, click **"Add secret"**
+4. For each secret:
+   - Name: `API_ENV` (or `WEB_ENV`, `APP_DB_ENV`, etc.)
+   - Value: Paste the entire contents of your corresponding `.env` file
+   - Click **"Add secret"**
 
-Repeat for all 10 secrets (5 staging + 5 production).
+**For Production Environment:**
+
+1. Go to GitHub → Settings → Environments
+2. Click on **`production`** environment
+3. Repeat the same process as staging
+
+**Benefits of Environments:**
+- Secrets are automatically scoped to the environment
+- Same secret names (`API_ENV`, `HOST`, etc.) can be used in both environments with different values
+- Cleaner workflow files (no `STAGING_` or `PROD_` prefixes needed)
+- Better organization and security
 
 ### Step 3: Verify Deployment
 
@@ -77,7 +112,7 @@ The secret value should be the **exact contents** of the `.env` file, including:
 - Empty lines (if any)
 - No trailing newline needed (but won't hurt)
 
-**Example secret value for `STAGING_API_ENV`:**
+**Example secret value for `API_ENV` in staging environment:**
 ```
 DATABASE_URL=postgresql+asyncpg://user:pass@eigentask-staging-app-db:5432/eigentask
 REDIS_URL=redis://eigentask-staging-redis:6379/0
@@ -97,11 +132,12 @@ COOKIE_SECURE=true
 
 To update a secret value:
 
-1. Go to GitHub → Settings → Secrets and variables → Actions
-2. Find the secret you want to update
-3. Click "Update"
-4. Paste the new value
-5. Save
+1. Go to GitHub → Settings → Environments
+2. Click on the environment (`staging` or `production`)
+3. Find the secret you want to update in the "Secrets" section
+4. Click the **pencil icon** (edit)
+5. Paste the new value
+6. Click **"Update secret"**
 
 The next deployment will automatically use the new value.
 
@@ -119,21 +155,22 @@ The next deployment will automatically use the new value.
 
 ### ⚠️ Important Notes
 
-- **Secret rotation**: If you rotate a secret (e.g., change a password), update the GitHub Secret immediately. The next deployment will use the new value.
+- **Secret rotation**: If you rotate a secret (e.g., change a password), update the environment secret immediately. The next deployment will use the new value.
 - **Backup**: Keep a secure backup of your secret values. GitHub doesn't allow viewing secrets after creation.
-- **Access control**: Only users with repository admin access can view/update secrets.
+- **Access control**: Only users with repository admin access can view/update environment secrets.
 - **Audit**: GitHub Actions logs show when secrets were used, but not their values.
+- **Environment protection**: You can optionally add protection rules to environments (required reviewers, wait timers, etc.) in Settings → Environments.
 
 ## Alternative Approaches
 
-If you prefer not to use GitHub Secrets for env files, you can:
+If you prefer not to use GitHub Environment Secrets for env files, you can:
 
 1. **Manual setup** (one-time): Create files manually on the server, then disable the "Deploy environment files" step
 2. **AWS Secrets Manager**: Store secrets in AWS Secrets Manager and fetch them during deployment
 3. **HashiCorp Vault**: Use Vault for secret management
 4. **Encrypted files in repo**: Use `git-crypt` or `SOPS` to store encrypted env files in the repo
 
-For a single-host setup, GitHub Secrets is the simplest and most secure option that doesn't require additional infrastructure.
+For a single-host setup, GitHub Environment Secrets is the simplest and most secure option that doesn't require additional infrastructure.
 
 ## Troubleshooting
 

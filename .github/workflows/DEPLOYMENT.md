@@ -6,16 +6,39 @@ This document describes how to configure automated deployment for the staging br
 
 The `deploy-staging.yml` workflow automatically deploys changes to the staging environment when code is pushed to the `staging` branch (after CI passes).
 
-## Required GitHub Secrets
+## Required GitHub Environments and Secrets
 
-Configure these secrets in your GitHub repository settings (Settings → Secrets and variables → Actions):
+The deployment workflows use GitHub Environments to organize secrets. You need to create two environments:
 
-### SSH-Based Deployment (Current Setup)
+1. **`staging`** - For staging deployments
+2. **`production`** - For production deployments
 
-- `STAGING_SSH_PRIVATE_KEY`: Private SSH key for accessing the staging server
-- `STAGING_HOST`: Hostname or IP address of the staging server
-- `STAGING_USER`: SSH username for the staging server
-- `STAGING_DEPLOY_PATH`: (Optional) Path to the deployment directory on the server (defaults to `/opt/eigentask`)
+### Setting Up Environments
+
+1. Go to: **Settings → Environments**
+2. Click **"New environment"**
+3. Create **`staging`** environment
+4. Create **`production`** environment
+
+### Required Secrets per Environment
+
+For each environment, configure these secrets:
+
+**Staging Environment:**
+- `SSH_PRIVATE_KEY`: Private SSH key for accessing the staging server
+- `HOST`: Hostname or IP address of the staging server
+- `USER`: SSH username for the staging server
+- `DEPLOY_PATH`: (Optional) Path to the deployment directory on the server (defaults to `/opt/eigentask`)
+- `API_ENV`, `WEB_ENV`, `APP_DB_ENV`, `KEYCLOAK_ENV`, `KEYCLOAK_DB_ENV`: Environment file contents
+
+**Production Environment:**
+- `SSH_PRIVATE_KEY`: Private SSH key for accessing the production server
+- `HOST`: Hostname or IP address of the production server
+- `USER`: SSH username for the production server
+- `DEPLOY_PATH`: (Optional) Path to the deployment directory on the server (defaults to `/opt/eigentask`)
+- `API_ENV`, `WEB_ENV`, `APP_DB_ENV`, `KEYCLOAK_ENV`, `KEYCLOAK_DB_ENV`: Environment file contents
+
+**See `ENV-FILES-SETUP.md` for detailed instructions on setting up environment secrets.**
 
 ### Setting up SSH Access
 
@@ -29,15 +52,22 @@ Configure these secrets in your GitHub repository settings (Settings → Secrets
    ssh-copy-id -i ~/.ssh/github_actions_staging.pub user@staging-server
    ```
 
-3. Add the private key to GitHub Secrets:
+3. Add the private key to GitHub Environment Secrets:
    - Copy the contents of `~/.ssh/github_actions_staging` (the private key)
-   - Go to GitHub → Settings → Secrets and variables → Actions
-   - Add a new secret named `STAGING_SSH_PRIVATE_KEY` with the private key content
+   - Go to GitHub → Settings → Environments
+   - Click on **`staging`** environment
+   - In the "Secrets" section, click **"Add secret"**
+   - Name: `SSH_PRIVATE_KEY`
+   - Value: Paste the private key content
+   - Click **"Add secret"**
 
-4. Add the other secrets:
-   - `STAGING_HOST`: Your server's hostname or IP
-   - `STAGING_USER`: The SSH username
-   - `STAGING_DEPLOY_PATH`: The directory where the code is deployed (e.g., `/opt/eigentask`)
+4. Add the other secrets to the staging environment:
+   - `HOST`: Your server's hostname or IP
+   - `USER`: The SSH username
+   - `DEPLOY_PATH`: The directory where the code is deployed (e.g., `/opt/eigentask`)
+   - `API_ENV`, `WEB_ENV`, `APP_DB_ENV`, `KEYCLOAK_ENV`, `KEYCLOAK_DB_ENV`: See `ENV-FILES-SETUP.md`
+
+5. Repeat steps 3-4 for the **`production`** environment with production-specific values
 
 ## Server Setup
 
