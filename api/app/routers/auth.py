@@ -106,7 +106,7 @@ async def oidc_callback(request: Request, code: str, state: str) -> RedirectResp
     # Determine where to send the user after login
     post_login_redirect = request.session.pop("post_login_redirect", None)
     redirect_target = _sanitize_return_to(post_login_redirect)
-    
+
     # Create opaque session id and persist tokens server-side (Redis)
     response = RedirectResponse(url=redirect_target, status_code=302)
     token_bundle: StoredTokens = {

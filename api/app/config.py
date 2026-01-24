@@ -11,18 +11,21 @@ class Settings(BaseSettings):
 
     # App
     environment: str = "development"
-    frontend_origin: HttpUrl  # Default set below
-    backend_origin: HttpUrl  # Default set below
+    frontend_origin: HttpUrl = "http://localhost:3000"  # type: ignore[assignment]
+    backend_origin: HttpUrl = "http://localhost:8000"  # type: ignore[assignment]
 
     # OIDC
-    keycloak_url: HttpUrl  # Default set below
-    keycloak_public_url: HttpUrl | None = None  # If set, browser-facing URLs are rewritten from keycloak_url to this
+    keycloak_url: HttpUrl = "https://auth.eigentask.com"  # type: ignore[assignment]
+    keycloak_public_url: HttpUrl | None = None  # If set, browser-facing URLs are rewritten
     keycloak_realm: str = "eigentask"
     keycloak_client_id: str = "eigentask"
     keycloak_client_secret: str | None = None
-    callback_url: HttpUrl  # Default set below
+    callback_url: HttpUrl = "http://localhost:8000/auth/callback"  # type: ignore[assignment]
 
-    @field_validator("frontend_origin", "backend_origin", "keycloak_url", "keycloak_public_url", "callback_url", mode="before")
+    @field_validator(
+        "frontend_origin", "backend_origin", "keycloak_url", "keycloak_public_url", "callback_url",
+        mode="before",
+    )
     @classmethod
     def validate_url(cls, v: Any) -> Any:
         """Allow string URLs to be converted to HttpUrl."""
@@ -33,16 +36,8 @@ class Settings(BaseSettings):
     class Config:
         """Pydantic configuration."""
 
-        # Default values for URLs
         env_file = ".env"
         extra = "ignore"
-    
-    # Set defaults using Pydantic's Field default mechanism
-    # These will be used if environment variables are not set
-    frontend_origin: HttpUrl = "http://localhost:3000"  # type: ignore[assignment]
-    backend_origin: HttpUrl = "http://localhost:8000"  # type: ignore[assignment]
-    keycloak_url: HttpUrl = "https://auth.eigentask.com"  # type: ignore[assignment]
-    callback_url: HttpUrl = "http://localhost:8000/auth/callback"  # type: ignore[assignment]
 
     # Session/Cookies
     session_secret: str = os.getenv("SESSION_SECRET", "dev-insecure-session-secret")
