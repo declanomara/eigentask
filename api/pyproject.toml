@@ -23,7 +23,7 @@ dependencies = [
 [tool.setuptools]
 packages = ["app"]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "ruff>=0.13.0",
     "ty>=0.0.1a20",
