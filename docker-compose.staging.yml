@@ -14,10 +14,12 @@ services:
     container_name: eigentask-staging-keycloak
     env_file:
       - ${ENV_FILE_PATH:-/etc/eigentask}/staging/keycloak.env
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded", "--import-realm"]
     ports:
       - "8081:8080"
     volumes:
       - ${ENV_FILE_PATH:-/etc/eigentask}/staging/themes:/opt/keycloak/themes
+      - ./keycloak/realm-export:/opt/keycloak/data/import
     networks:
       - eigentask-staging
 

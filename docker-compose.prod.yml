@@ -14,10 +14,12 @@ services:
     container_name: eigentask-prod-keycloak
     env_file:
       - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak.env
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded", "--import-realm"]
     ports:
       - "8080:8080"
     volumes:
       - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes
+      - ./keycloak/realm-export:/opt/keycloak/data/import
     networks:
       - eigentask-prod
 
