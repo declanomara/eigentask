@@ -1,10 +1,18 @@
-/* Eigentask login theme - flat, Notion-inspired (minimal shadows, clean borders) */
+/* Eigentask login theme - flat, minimal shadows, clean borders */
 
-/* Input background: set on html so all form controls inherit */
+/*
+ * Theme – single source of truth for page/surface background.
+ * Change this to update the login page background app-wide.
+ */
+:root {
+  --eigentask-bg: #fff;
+}
+
+/* Input background: inherit from theme */
 html {
-  --pf-v5-c-form-control--BackgroundColor: #f7f6f3 !important;
-  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg) !important;
+  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
 }
 
 :root {
@@ -13,9 +21,9 @@ html {
   --pf-v5-global--primary-color--200: #1d4ed8;
   --pf-v5-global--link--Color: #2563eb;
   --pf-v5-global--link--Color--hover: #1d4ed8;
-  /* Flat background and surfaces */
-  --pf-v5-global--BackgroundColor--100: #ffffff;
-  --pf-v5-global--BackgroundColor--200: #ffffff;
+  /* Flat background and surfaces – use theme token */
+  --pf-v5-global--BackgroundColor--100: var(--eigentask-bg);
+  --pf-v5-global--BackgroundColor--200: var(--eigentask-bg);
   --pf-v5-global--Color--100: #37352f;
   --pf-v5-global--Color--200: #37352f;
   --pf-v5-global--BorderColor--100: #e5e7eb;
@@ -27,25 +35,23 @@ html {
   /* No elevation: PatternFly panel/card shadow */
   --pf-v5-c-panel--BoxShadow: none;
   --pf-v5-c-panel--m-raised--BoxShadow: none;
-  /* Form control / input group background: match page (#f7f6f3) */
-  --pf-v5-c-form-control--BackgroundColor: #f7f6f3;
-  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3;
+  /* Form control / input group: match page */
+  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg);
+  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg);
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg);
 }
 
-/* Page background - flat off-white (Notion-style: no gradient, no texture) */
+/* Page background – use theme token */
 body.pf-v5-c-login,
 body.login-pf,
 .pf-v5-c-login {
-  background: #f7f6f3 !important;
+  background: var(--eigentask-bg) !important;
   min-height: 100vh;
-  /* Force no panel/card shadow (PatternFly variables) */
   --pf-v5-c-panel--BoxShadow: none !important;
   --pf-v5-c-panel--m-raised--BoxShadow: none !important;
-  /* Form/input background: match page so inputs blend in */
-  --pf-v5-c-form-control--BackgroundColor: #f7f6f3 !important;
-  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg) !important;
+  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
 }
 
 /* NO shadows anywhere (Notion-style): full-page reset */
@@ -125,7 +131,7 @@ a:hover {
   color: #1d4ed8 !important;
 }
 
-/* Form controls - match page background (#f7f6f3), flat thin border */
+/* Form controls – match page (--eigentask-bg), flat thin border */
 .pf-v5-c-form-control,
 .pf-v5-c-input-group__item,
 .pf-v5-c-input-group__item.pf-m-box,
@@ -149,20 +155,20 @@ html body input[type="password"],
 html body input[type="email"] {
   border: 1px solid #e5e7eb !important;
   border-radius: 6px !important;
-  background-color: #f7f6f3 !important;
-  background: #f7f6f3 !important;
+  background-color: var(--eigentask-bg) !important;
+  background: var(--eigentask-bg) !important;
 }
 
-/* Override browser autofill white background */
+/* Override browser autofill – use theme background */
 body.login-pf input:-webkit-autofill,
 body.login-pf input:-webkit-autofill:hover,
 body.login-pf input:-webkit-autofill:focus,
 .pf-v5-c-login input:-webkit-autofill,
 .pf-v5-c-login input:-webkit-autofill:hover,
 .pf-v5-c-login input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 30px #f7f6f3 inset !important;
-  box-shadow: 0 0 0 30px #f7f6f3 inset !important;
-  background-color: #f7f6f3 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--eigentask-bg) inset !important;
+  box-shadow: 0 0 0 30px var(--eigentask-bg) inset !important;
+  background-color: var(--eigentask-bg) !important;
 }
 
 .pf-v5-c-form-control:focus,
@@ -310,7 +316,7 @@ div.kc-logo-text span.kc-logo-text-bold {
   width: 100% !important;
   border: 1px solid #e5e7eb !important;
   border-radius: 6px !important;
-  background-color: #f7f6f3 !important;
+  background-color: var(--eigentask-bg) !important;
   overflow: hidden !important;
   /* So last child (toggle) has no borders */
   --pf-v5-c-input-group__item--m-box--BorderWidth: 0 !important;
@@ -413,7 +419,7 @@ div.kc-logo-text span.kc-logo-text-bold {
   display: none !important;
 }
 
-/* Force input fields to match page background (transparent = inherit page #f7f6f3) */
+/* Force input fields to match page (--eigentask-bg) */
 .pf-v5-c-login__main-body .pf-v5-c-form-control,
 .pf-v5-c-login__main-body .pf-v5-c-input-group__item,
 .pf-v5-c-login__main-body .pf-v5-c-input-group__item.pf-m-box,
@@ -428,27 +434,27 @@ div.kc-logo-text span.kc-logo-text-bold {
 .pf-v5-c-login input,
 .pf-v5-c-login .pf-v5-c-form-control,
 .pf-v5-c-login .pf-v5-c-input-group__item {
-  background-color: #f7f6f3 !important;
-  background: #f7f6f3 !important;
+  background-color: var(--eigentask-bg) !important;
+  background: var(--eigentask-bg) !important;
 }
 
-/* Nuclear: any div in main body that might wrap inputs */
+/* Nuclear: input group items use theme background */
 .pf-v5-c-login__main-body .pf-v5-c-input-group,
 .pf-v5-c-login__main .pf-v5-c-input-group {
-  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
 }
 .pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item,
 .pf-v5-c-login__main .pf-v5-c-input-group .pf-v5-c-input-group__item {
-  background-color: #f7f6f3 !important;
-  background: #f7f6f3 !important;
+  background-color: var(--eigentask-bg) !important;
+  background: var(--eigentask-bg) !important;
 }
 
-/* Nuclear: form area is inside panel main body (kcPanelMainBodyClass); match page background */
+/* Nuclear: form area uses theme background */
 .pf-v5-c-panel__main-body *,
 .pf-v5-c-login__main-body * {
-  background-color: #f7f6f3 !important;
-  background: #f7f6f3 !important;
+  background-color: var(--eigentask-bg) !important;
+  background: var(--eigentask-bg) !important;
 }
 .pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-primary,
 .pf-v5-c-panel__main-body input[type="submit"],

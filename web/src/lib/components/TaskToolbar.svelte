@@ -10,7 +10,7 @@
 <div class="flex justify-end">
     <button
         on:click={onNewTask}
-        class="outline-1 outline-gray-300 text-gray-300 hover:bg-blue-600 hover:text-white rounded-xl cursor-pointer p-2 mx-2 max-w-8 max-h-8"
+        class="outline-1 outline-border text-gray-400 hover:bg-blue-600 hover:text-white rounded-xl cursor-pointer p-2 mx-2 max-w-8 max-h-8"
         aria-label="Create new task"
         title="Create new task"
     >

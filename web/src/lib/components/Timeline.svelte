@@ -167,7 +167,7 @@
 
     const blockTone = (task: Task) =>
         task.status === "COMPLETED"
-            ? "bg-gray-300 text-gray-800 ring-gray-200/80 border border-gray-200"
+            ? "bg-gray-300 text-gray-800 ring-border/80 border border-border"
             : "bg-blue-500 text-white ring-blue-200/80";
 
     const titleClampClass = (task: Task) => {
@@ -251,7 +251,7 @@
     }
 </script>
 
-<section class="flex flex-col border border-gray-200 rounded-2xl bg-white shadow-sm p-6 gap-4">
+<section class="flex flex-col border border-border rounded-2xl bg-surface shadow-sm p-6 gap-4">
     <header class="flex items-center justify-between">
         <div>
             <p class="text-xs uppercase text-gray-500 tracking-wide">Schedule</p>
@@ -261,14 +261,14 @@
         </div>
         <div class="flex items-center gap-2">
             <button
-                class="inline-flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-blue-600 hover:text-white rounded-lg border border-gray-200"
+                class="inline-flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-blue-600 hover:text-white rounded-lg border border-border"
                 aria-label="Previous day"
                 on:click={decrementDate}
             >
                 ‹
             </button>
             <button
-                class="inline-flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-blue-600 hover:text-white rounded-lg border border-gray-200"
+                class="inline-flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-blue-600 hover:text-white rounded-lg border border-border"
                 aria-label="Next day"
                 on:click={incrementDate}
             >
@@ -281,7 +281,7 @@
         <!-- Desktop horizontal timeline -->
         <div class="hidden md:block">
             <div
-                class="relative h-36 border border-dashed border-gray-300 rounded-xl bg-gray-50 overflow-visible"
+                class="relative h-36 border border-dashed border-border rounded-xl bg-surface overflow-visible"
                 use:dndzone={zoneOptions}
                 bind:this={trackEl}
                 on:consider={handleConsider}

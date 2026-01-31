@@ -38,15 +38,15 @@
 </script>
 
 <div
-    class="flex flex-col bg-white rounded-2xl w-full border border-gray-200 shadow-sm"
+    class="flex flex-col bg-surface rounded-2xl w-full border border-border shadow-sm"
     use:dndzone={resolvedOptions}
     on:consider={forward("consider")}
     on:finalize={forward("finalize")}
 >
-    <header class="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+    <header class="flex items-center justify-between px-4 py-2 border-b border-border-muted">
         <div class="flex items-center gap-2">
             <h2 class="text-sm text-gray-700 font-semibold uppercase tracking-wide">{title}</h2>
-            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{tasks.length}</span>
+            <span class="text-xs text-gray-500 bg-surface-hover px-2 py-0.5 rounded-full">{tasks.length}</span>
         </div>
     </header>
 
