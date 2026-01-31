@@ -68,5 +68,5 @@ jobs:
           KEYCLOAK_ENV: ${{ secrets.KEYCLOAK_ENV }}
           KEYCLOAK_DB_ENV: ${{ secrets.KEYCLOAK_DB_ENV }}
         run: |
-          chmod +x ./deploy.sh
-          ./deploy.sh
+          chmod +x ./scripts/deploy.sh
+          ./scripts/deploy.sh

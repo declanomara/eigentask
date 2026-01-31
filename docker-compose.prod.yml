@@ -1,0 +1,65 @@
+# Production overlay. Use with base: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  keycloak-db:
+    container_name: eigentask-prod-keycloak-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak-db.env
+    volumes:
+      - keycloak_db_data_prod:/var/lib/postgresql/data
+    networks:
+      - eigentask-prod
+
+  keycloak:
+    container_name: eigentask-prod-keycloak
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes
+    networks:
+      - eigentask-prod
+
+  app-db:
+    container_name: eigentask-prod-app-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/app-db.env
+    volumes:
+      - app_db_data_prod:/var/lib/postgresql/data
+    networks:
+      - eigentask-prod
+
+  redis:
+    container_name: eigentask-prod-redis
+    volumes:
+      - redis_data_prod:/data
+    networks:
+      - eigentask-prod
+
+  api:
+    container_name: eigentask-prod-api
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/api.env
+    ports:
+      - "8000:8000"
+    networks:
+      - eigentask-prod
+
+  web:
+    container_name: eigentask-prod-web
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/web.env
+    ports:
+      - "3000:3000"
+    networks:
+      - eigentask-prod
+
+volumes:
+  keycloak_db_data_prod:
+  app_db_data_prod:
+  redis_data_prod:
+
+networks:
+  eigentask-prod:
+    name: eigentask-prod

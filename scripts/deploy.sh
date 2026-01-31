@@ -17,12 +17,12 @@ else
     DEPLOY_BRANCH="staging"
 fi
 
-# Map environment to compose file and network
+# Map environment to compose files (base + overlay) and network
 if [ "$ENV" = "production" ]; then
-    COMPOSE_FILE="docker-compose.prod.yml"
+    COMPOSE_FILES="-f docker-compose.yml -f docker-compose.prod.yml"
     NETWORK_NAME="eigentask-prod"
 else
-    COMPOSE_FILE="docker-compose.staging.yml"
+    COMPOSE_FILES="-f docker-compose.yml -f docker-compose.staging.yml"
     NETWORK_NAME="eigentask-staging"
 fi
 
@@ -146,24 +146,24 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     docker buildx version || echo "Buildx not installed or outdated"
     
     echo "Building and deploying ${ENV} containers..."
-    ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} pull || true
+    ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} pull || true
     
     # Use buildx if available and version is sufficient, otherwise use regular build
     if docker buildx version 2>/dev/null | grep -q "v0\.[1-9][7-9]\|v[1-9]"; then
         echo "Using Docker Buildx for build..."
-        ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} build
+        ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} build
     else
         echo "Buildx not available or version too old, using regular build..."
-        ENV_FILE_PATH=\${ENV_PATH} DOCKER_BUILDKIT=0 docker compose -f ${COMPOSE_FILE} build
+        ENV_FILE_PATH=\${ENV_PATH} DOCKER_BUILDKIT=0 docker compose ${COMPOSE_FILES} build
     fi
     
-    ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} up -d
+    ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} up -d
     
     echo "Waiting for services to be healthy..."
     sleep 10
     
     echo "Checking service status..."
-    ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} ps
+    ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} ps
     
     echo "Deployment complete!"
 EOF
@@ -175,9 +175,9 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     ENV_PATH=\${ENV_FILE_PATH:-/etc/eigentask}
     
     # Check if containers are running
-    if ! ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} ps | grep -q "Up"; then
+    if ! ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} ps | grep -q "Up"; then
         echo "ERROR: Some containers are not running!"
-        ENV_FILE_PATH=\${ENV_PATH} docker compose -f ${COMPOSE_FILE} ps
+        ENV_FILE_PATH=\${ENV_PATH} docker compose ${COMPOSE_FILES} ps
         exit 1
     fi
     
