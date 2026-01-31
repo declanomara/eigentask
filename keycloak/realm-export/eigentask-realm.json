@@ -117,7 +117,7 @@
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
-        "post.logout.redirect.uris": "http://localhost:3000/*",
+        "post.logout.redirect.uris": "http://localhost:3000/*##https://staging.eigentask.com/*##https://eigentask.com/*",
         "saml.assertion.signature": "false",
         "saml.force.post.binding": "false",
         "saml.multivalued.roles": "false",
