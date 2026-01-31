@@ -179,7 +179,8 @@ def mock_oidc_discovery() -> Iterator[MagicMock]:
         "end_session_endpoint": "https://keycloak.test/realms/test-realm/protocol/openid-connect/logout",
     }
 
-    with patch("app.core.auth.get_discovery_document", new_callable=AsyncMock) as mock:
+    # Patch where it's used (router imports get_discovery_document at load time)
+    with patch("app.routers.auth.get_discovery_document", new_callable=AsyncMock) as mock:
         mock.return_value = discovery_doc
         yield mock
 
