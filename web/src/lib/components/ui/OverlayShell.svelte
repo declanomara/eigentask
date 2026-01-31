@@ -68,12 +68,12 @@
     aria-label={title}
   >
     <div
-      class={`bg-white shadow-lg w-full ${align === "center" ? "mx-4 my-8 rounded-md" : "h-full max-w-md md:max-w-lg rounded-none md:rounded-l-xl overflow-y-auto"} ${widthClass} ${panelClass}`}
+      class={`bg-surface-elevated shadow-lg w-full ${align === "center" ? "mx-4 my-8 rounded-md" : "h-full max-w-md md:max-w-lg rounded-none md:rounded-l-xl overflow-y-auto"} ${widthClass} ${panelClass}`}
       bind:this={panelEl}
       role="document"
     >
       <slot name="header" {close}>
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted">
           <h3 class="text-lg font-semibold text-gray-800">{title}</h3>
           <button
             aria-label="Close"

@@ -1,0 +1,352 @@
+/* Eigentask login theme – minimal styling from scratch (extends base, no PatternFly) */
+
+:root {
+  --eigentask-bg: #fff;
+  --eigentask-border: #e5e7eb;
+  --eigentask-primary: #2563eb;
+  --eigentask-primary-hover: #1d4ed8;
+  --eigentask-text: #37352f;
+  --eigentask-text-muted: #9b9a97;
+  --eigentask-focus: 0 0 0 1px var(--eigentask-primary);
+}
+
+/* Page */
+.eigentask-html,
+.eigentask-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--eigentask-bg);
+  color: var(--eigentask-text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.eigentask-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  max-width: 24rem;
+  margin: 0 auto;
+  margin-top: 12vh;
+}
+
+/* Header: logo + brand above form */
+.eigentask-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.eigentask-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Branding: logo above text (from realm displayNameHtml) */
+.kc-logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.kc-logo-text {
+  display: block;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  background: none;
+  height: auto;
+}
+
+.kc-logo-text::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.25rem;
+  background: url("../img/logo.svg") center/contain no-repeat;
+}
+
+.kc-logo-text span {
+  display: inline;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--eigentask-text);
+}
+
+.kc-logo-text span.kc-logo-text-bold {
+  font-weight: 700;
+}
+
+.kc-logo-slogan {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--eigentask-text-muted);
+}
+
+/* Form card */
+.eigentask-card {
+  width: 100%;
+}
+
+.eigentask-form-header {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+#kc-locale {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.875rem;
+}
+
+#kc-locale a,
+#kc-locale button {
+  color: var(--eigentask-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+}
+
+#kc-locale a:hover,
+#kc-locale button:hover {
+  color: var(--eigentask-primary-hover);
+}
+
+#kc-page-title {
+  display: none;
+}
+
+/* Locale (if enabled) */
+.eigentask-form-header .menu-button-links {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Content area */
+#kc-content-wrapper {
+  width: 100%;
+}
+
+/* Form */
+#kc-form,
+#kc-form-wrapper {
+  width: 100%;
+}
+
+.eigentask-field {
+  margin-bottom: 1rem;
+}
+
+.eigentask-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--eigentask-text);
+}
+
+.eigentask-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--eigentask-text);
+  background: var(--eigentask-bg);
+  border: 1px solid var(--eigentask-border);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.eigentask-input:focus {
+  outline: none;
+  border-color: var(--eigentask-primary);
+  box-shadow: var(--eigentask-focus);
+}
+
+/* Password row: single box, toggle floats on right */
+.eigentask-input-wrap {
+  position: relative;
+  border: 1px solid var(--eigentask-border);
+  border-radius: 6px;
+  background: var(--eigentask-bg);
+}
+
+.eigentask-input-wrap .eigentask-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 2.75rem 0.5rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.eigentask-input-wrap .eigentask-input:focus {
+  box-shadow: none;
+}
+
+.eigentask-input-wrap:focus-within {
+  border-color: var(--eigentask-primary);
+  box-shadow: var(--eigentask-focus);
+}
+
+/* Toggle: absolute right, eye icon only */
+.eigentask-password-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2.5rem;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--eigentask-text-muted);
+}
+
+.eigentask-password-toggle:hover {
+  color: var(--eigentask-text);
+}
+
+.eigentask-password-toggle:focus {
+  outline: none;
+}
+
+/* Hide base theme icon; show eye SVG */
+.eigentask-password-toggle i,
+.eigentask-password-toggle .fa,
+.eigentask-password-toggle [class^="fa-"] {
+  display: none !important;
+}
+
+.eigentask-password-toggle::before {
+  content: "";
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.eigentask-password-toggle:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2337352f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+
+/* Eye-slash when password is visible (input type=text) */
+.eigentask-input-wrap:has(#password[type="text"]) .eigentask-password-toggle::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
+}
+
+.eigentask-input-wrap:has(#password[type="text"]) .eigentask-password-toggle:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2337352f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
+}
+
+.eigentask-error {
+  display: block;
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}
+
+/* Button */
+.eigentask-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  color: #fff;
+  background: var(--eigentask-primary);
+  border: 1px solid var(--eigentask-primary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.eigentask-btn:hover {
+  background: var(--eigentask-primary-hover);
+  border-color: var(--eigentask-primary-hover);
+}
+
+.eigentask-btn:focus {
+  outline: none;
+  box-shadow: var(--eigentask-focus);
+}
+
+/* Form options (remember me, forgot password) */
+.eigentask-form-options {
+  margin-bottom: 1rem;
+}
+
+.eigentask-form-options a {
+  color: var(--eigentask-primary);
+  text-decoration: none;
+}
+
+.eigentask-form-options a:hover {
+  color: var(--eigentask-primary-hover);
+}
+
+/* Alerts */
+.eigentask-alert {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.eigentask-alert.pf-m-danger {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.eigentask-alert.pf-m-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+/* Footer / signup */
+.eigentask-signup,
+.eigentask-info {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--eigentask-text-muted);
+  text-align: center;
+}
+
+.eigentask-signup a,
+.eigentask-info a {
+  color: var(--eigentask-primary);
+  text-decoration: none;
+}
+
+.eigentask-signup a:hover,
+.eigentask-info a:hover {
+  color: var(--eigentask-primary-hover);
+}
+
+/* Footer tagline */
+.eigentask-footer {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--eigentask-text-muted);
+  text-align: center;
+}

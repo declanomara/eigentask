@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/*
+ * Theme – single source of truth for page/surface colors and borders.
+ * Change these to update the look app-wide (matches Keycloak login page).
+ */
+@theme {
+  /* Backgrounds */
+  --color-page: #fff;              /* Page background */
+  --color-surface: #fff;           /* Cards, panels – same as page, border defines */
+  --color-surface-elevated: #fff;  /* Modals, dropdowns */
+  --color-surface-hover: #f5f5f5;  /* Button/control hover (e.g. secondary buttons) */
+  /* Borders */
+  --color-border: #e5e7eb;         /* Default border (cards, inputs) */
+  --color-border-strong: #d1d5db; /* Hover/active border (buttons, inputs) */
+  --color-border-muted: #eeedeb;   /* Lighter dividers (headers, etc.) */
+}
+
+@layer base {
+  body {
+    @apply bg-page min-h-screen;
+  }
+}

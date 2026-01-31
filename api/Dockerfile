@@ -1,18 +1,27 @@
-# API Dockerfile
+# API Dockerfile - Production
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# (Optional) system packages if needed by deps
-# RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
+# Install curl and uv
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 
 # Install project (PEP 621/pyproject)
-COPY pyproject.toml ./
-RUN pip install --upgrade pip \
-    && pip install .
+# Copy dependency files and package structure for Docker layer caching
+COPY pyproject.toml uv.lock README.md ./
+COPY app/ ./app/
+RUN uv sync
 
-# Copy source
-COPY . .
+# Copy remaining source files (alembic migrations, main entrypoint, etc.)
+COPY alembic/ ./alembic/
+COPY alembic.ini main.py ./
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Use entrypoint to run migrations before starting
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

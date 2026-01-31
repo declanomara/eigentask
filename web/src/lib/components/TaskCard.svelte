@@ -20,7 +20,7 @@
   };
 
   const statusTone: Record<TaskStatus, string> = {
-    BACKLOG: "bg-gray-100 text-gray-700 border-gray-200",
+    BACKLOG: "bg-surface-hover text-gray-700 border-border",
     PLANNED: "bg-blue-50 text-blue-700 border-blue-200",
     COMPLETED: "bg-green-50 text-green-700 border-green-200",
     REMOVED: "bg-rose-50 text-rose-700 border-rose-200",
@@ -103,7 +103,7 @@
 
 <div
   class={`rounded-xl border p-4 hover:shadow-md transition-shadow flex flex-col gap-2 select-none ${draggable ? "cursor-grab" : "cursor-pointer"} ${statusKey === "COMPLETED" ? "opacity-80" : ""} ${
-    isOverdue ? "border-rose-200 bg-rose-50/70" : "border-gray-200 bg-white"
+    isOverdue ? "border-rose-200 bg-rose-50/70" : "border-border bg-surface"
   }`}
   draggable={draggable}
   data-dnd-id={task.id}

@@ -11,7 +11,7 @@
 </script>
 
 <header
-    class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 top-0 mb-1"
+    class="flex items-center justify-between px-6 py-4 bg-surface border-b border-border top-0 mb-1"
 >
     <!-- Branding -->
     <a href="/" class="flex items-center space-x-3 hover:opacity-90">
@@ -32,7 +32,7 @@
 
         <!-- Logout -->
         <button
-            class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100"
+            class="px-3 py-1 border border-border rounded-md hover:bg-surface-hover"
             on:click={onLogout}
         >
             Logout

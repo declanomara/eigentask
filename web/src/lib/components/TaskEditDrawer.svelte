@@ -124,7 +124,7 @@
   on:close={close}
 >
   <svelte:fragment slot="header" let:close>
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted">
       <div>
         <p class="text-xs uppercase text-gray-500 tracking-wide">Task</p>
         <h3 class="text-lg font-semibold text-gray-800">{title || "Edit task"}</h3>
@@ -202,7 +202,7 @@
         </button>
         <button
           type="button"
-          class="px-4 py-2 text-gray-700 border border-gray-300 rounded"
+          class="px-4 py-2 text-gray-700 border border-border rounded hover:bg-surface-hover"
           on:click={close}
           disabled={loading}
         >

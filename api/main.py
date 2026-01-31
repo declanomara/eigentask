@@ -8,7 +8,6 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import app.models
 from app.config import get_settings
-from app.core.db import Base, engine
 from app.routers import auth as auth_router
 from app.routers import root as root_router
 from app.routers import tasks as tasks_router
@@ -17,12 +16,14 @@ from app.routers import users as users_router
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI) -> AsyncIterator[None]:
-    """Initialize shared state on startup and cleanup on shutdown."""
+    """Initialize shared state on startup and cleanup on shutdown.
+
+    Note: Database migrations are handled by docker-entrypoint.sh before
+    the application starts. This ensures migrations run in a controlled
+    environment and the app fails fast if migrations are invalid.
+    """
     # Initialize shared Redis client
     app_instance.state.redis = redis.from_url(settings.redis_url, decode_responses=True)
-    # Create database tables if they do not exist (no Alembic yet)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     try:
         yield
     finally:

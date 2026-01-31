@@ -3,14 +3,20 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system deps if your project needs them (optional)
-# RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
+# Install curl and uv
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
-# Copy dependency list (so Docker caches installs)
-COPY pyproject.toml .
+# Copy dependency list and minimal package structure (so Docker caches installs)
+COPY pyproject.toml uv.lock README.md ./
+COPY app/ ./app/
 
 # Install dependencies into container
-RUN pip install --upgrade pip && pip install -e .
+RUN uv sync --extra dev
+
+# Copy migration entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Mount source code in docker-compose, so don't COPY here
 # (this allows live reload with --reload)
@@ -18,5 +24,8 @@ RUN pip install --upgrade pip && pip install -e .
 # Expose the dev port
 EXPOSE 8000
 
+# Use entrypoint to run migrations before starting
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
 # Run FastAPI dev server with live reload
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

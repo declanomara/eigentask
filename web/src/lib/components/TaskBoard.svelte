@@ -61,14 +61,14 @@
 </div>
 
 <div class="px-2 mt-3 w-full">
-    <details class="rounded-xl border border-gray-200 bg-gray-50" bind:open={showCompleted}>
+    <details class="rounded-xl border border-border bg-surface" bind:open={showCompleted}>
         <summary
-            class="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition cursor-pointer select-none list-none"
+            class="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-surface-hover transition cursor-pointer select-none list-none"
         >
             <div class="flex items-center gap-2">
                 <span class="text-gray-600">{showCompleted ? "▾" : "▸"}</span>
                 <span class="font-semibold">Completed</span>
-                <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full"
+                <span class="text-xs text-gray-500 bg-surface-hover px-2 py-0.5 rounded-full"
                     >{completedTasks.length}</span
                 >
             </div>
