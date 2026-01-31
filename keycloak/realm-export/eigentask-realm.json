@@ -164,6 +164,21 @@
           }
         },
         {
+          "id": "eigentask-sub-mapper",
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        },
+        {
           "id": "eigentask-email-mapper",
           "name": "email",
           "protocol": "openid-connect",
