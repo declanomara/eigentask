@@ -101,6 +101,14 @@ For each environment, configure these secrets:
 
 **Production** (required): Same filenames under `/etc/eigentask/prod/`.
 
+**Example web.env** (staging): `API_ORIGIN` and `PUBLIC_API_ORIGIN` must be set or the app will fail on `/app`. Use the internal API URL for SSR and the public URL for redirects:
+
+```bash
+API_ORIGIN=http://api:8000
+PUBLIC_API_ORIGIN=https://staging-api.eigentask.com
+PUBLIC_APP_ORIGIN=https://staging.eigentask.com
+```
+
 **Example keycloak.env** (see [envs/keycloak.example.env](../envs/keycloak.example.env) for full template):
 
 ```bash
