@@ -58,6 +58,7 @@
   padding: 0;
   background: none;
   height: auto;
+  white-space: nowrap; /* Keep "EigenTask" on one line */
 }
 
 .kc-logo-text::before {

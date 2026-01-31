@@ -4,7 +4,7 @@ services:
   keycloak-db:
     container_name: eigentask-prod-keycloak-db
     env_file:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak-db.env
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/keycloak-db.env
     volumes:
       - keycloak_db_data_prod:/var/lib/postgresql/data
     networks:
@@ -13,12 +13,12 @@ services:
   keycloak:
     container_name: eigentask-prod-keycloak
     env_file:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/keycloak.env
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/keycloak.env
     command: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded", "--import-realm"]
     ports:
       - "8080:8080"
     volumes:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes:ro
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/themes:/opt/keycloak/themes:ro
       - ./keycloak/realm-export:/opt/keycloak/data/import
     healthcheck:
       test: ["CMD-SHELL", "{ printf 'GET /realms/eigentask/.well-known/openid-configuration HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.1 200'; } 0<>/dev/tcp/localhost/8080"]
@@ -32,7 +32,7 @@ services:
   app-db:
     container_name: eigentask-prod-app-db
     env_file:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/app-db.env
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/app-db.env
     volumes:
       - app_db_data_prod:/var/lib/postgresql/data
     networks:
@@ -48,7 +48,7 @@ services:
   api:
     container_name: eigentask-prod-api
     env_file:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/api.env
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/api.env
     ports:
       - "8000:8000"
     networks:
@@ -57,7 +57,7 @@ services:
   web:
     container_name: eigentask-prod-web
     env_file:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/web.env
+      - ${ENV_FILE_PATH:-/etc/eigentask}/production/web.env
     ports:
       - "3000:3000"
     networks:
