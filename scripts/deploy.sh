@@ -139,14 +139,11 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     echo "Checking disk space..."
     df -h
     
-    echo "Cleaning up Docker to free space..."
-    docker system prune -af --volumes || true
+    echo "Cleaning up Docker to free space (images only, never volumes)..."
+    docker system prune -af || true
     
     echo "Checking disk space..."
     df -h
-    
-    echo "Cleaning up Docker to free space..."
-    docker system prune -af --volumes || true
     
     echo "Checking Docker Buildx version..."
     docker buildx version || echo "Buildx not installed or outdated"

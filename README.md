@@ -145,7 +145,7 @@ Contribution Branch → Staging → Main (Production)
 
 All development happens on contribution branches with the naming convention above:
 
-- Create from `main`: `git checkout -b <type>/<description> main`
+- Create from `staging`: `git checkout -b <type>/<description> staging`
   - Examples: `feature/user-dashboard`, `fix/auth-bug`, `docs/api-guide`, `refactor/auth-module`, `chore/update-deps`
 - Make changes with clear, focused commits
 - Open a Pull Request targeting `staging`
@@ -190,12 +190,13 @@ This workflow ensures:
 
 ## High Level Overview
 
-1) Create a contribution branch from `main` using the naming convention with the appropriate prefix:
+1) Create a contribution branch from `staging` using the naming convention with the appropriate prefix:
    - `feature/` for new features
    - `fix/` for bug fixes
    - `docs/` for documentation
    - `refactor/` for refactoring
    - `chore/` for maintenance tasks
+   - Example: `git checkout -b fix/my-fix staging`
 2) Make changes with clear, focused commits.
 3) If you change models:
    - Update SQLAlchemy models.

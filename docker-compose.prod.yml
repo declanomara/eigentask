@@ -65,8 +65,14 @@ services:
 
 volumes:
   keycloak_db_data_prod:
+    external: true
+    name: keycloak_db_data
   app_db_data_prod:
+    external: true
+    name: eigentask_app_db_data
   redis_data_prod:
+    external: true
+    name: eigentask_redis_data
 
 networks:
   eigentask-prod:
