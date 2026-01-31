@@ -121,6 +121,12 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
         fi
     fi
     
+    echo "Copying Keycloak themes to environment themes directory..."
+    THEMES_SUBDIR=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "staging")
+    mkdir -p "\${ENV_PATH}/\${THEMES_SUBDIR}/themes"
+    cp -r keycloak/themes/* "\${ENV_PATH}/\${THEMES_SUBDIR}/themes/"
+    echo "Keycloak themes deployed."
+    
     echo "Ensuring Docker network exists with correct labels..."
     # Remove network if it exists without proper Compose labels, then let Compose create it
     if docker network inspect ${NETWORK_NAME} >/dev/null 2>&1; then

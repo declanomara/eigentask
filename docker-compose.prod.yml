@@ -18,7 +18,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes
+      - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes:ro
       - ./keycloak/realm-export:/opt/keycloak/data/import
     healthcheck:
       test: ["CMD-SHELL", "{ printf 'GET /realms/eigentask/.well-known/openid-configuration HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.1 200'; } 0<>/dev/tcp/localhost/8080"]

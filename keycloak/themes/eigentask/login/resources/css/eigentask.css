@@ -1,0 +1,110 @@
+/* Eigentask login theme - matches web app design (Tailwind slate/gray, blue-600 primary) */
+
+:root {
+  /* Primary: blue-600 / blue-700 hover (frontend buttons) */
+  --pf-v5-global--primary-color--100: #2563eb;
+  --pf-v5-global--primary-color--200: #1d4ed8;
+  --pf-v5-global--link--Color: #2563eb;
+  --pf-v5-global--link--Color--hover: #1d4ed8;
+  /* Background: slate-50 / white card (frontend landing + header) */
+  --pf-v5-global--BackgroundColor--100: #f8fafc;
+  --pf-v5-global--BackgroundColor--200: #ffffff;
+  /* Text: gray-800 / gray-900 (frontend text) */
+  --pf-v5-global--Color--100: #1f2937;
+  --pf-v5-global--Color--200: #374151;
+  /* Border: gray-200 (frontend borders) */
+  --pf-v5-global--BorderColor--100: #e5e7eb;
+  --pf-v5-global--BorderColor--200: #e5e7eb;
+}
+
+/* Page background - gradient like frontend landing */
+body.pf-v5-c-login,
+.pf-v5-c-login {
+  background: linear-gradient(to bottom right, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
+  min-height: 100vh;
+}
+
+/* Card/panel - white with subtle border (frontend cards) */
+.pf-v5-c-panel.pf-m-raised,
+.card-pf {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Primary button - blue-600, hover blue-700, rounded-xl */
+.pf-v5-c-button.pf-m-primary,
+input[type="submit"].pf-v5-c-button {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+input[type="submit"].pf-v5-c-button:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+/* Secondary / link-style button - gray border like frontend "See how it works" */
+.pf-v5-c-button.pf-m-secondary {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.75rem !important;
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+  background-color: #f9fafb !important;
+  border-color: #d1d5db !important;
+}
+
+/* Links */
+a {
+  color: #2563eb !important;
+  font-weight: 500 !important;
+}
+
+a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Form controls - border gray-200 */
+.pf-v5-c-form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  border-color: #e5e7eb !important;
+  border-radius: 0.5rem !important;
+}
+
+.pf-v5-c-form-control:focus,
+input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Title / branding area - EigenTask style */
+.pf-v5-c-title {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
+
+.pf-v5-c-login__main-header {
+  color: #1f2937 !important;
+}
+
+/* Alerts - keep readable, subtle borders */
+.pf-v5-c-alert.pf-m-danger,
+.pf-v5-c-alert.pf-m-warning,
+.pf-v5-c-alert.pf-m-success {
+  border-radius: 0.5rem !important;
+}
+
+/* Footer band text - muted gray like frontend footer */
+.pf-v5-c-login__main-footer-band-item {
+  color: #6b7280 !important;
+}
