@@ -10,7 +10,7 @@ The `themes/` directory contains the **eigentask** custom theme (Keycloak 26 com
 - **Account**: Account console uses the same styling.
 - **Email**: Email theme extends the default keycloak email theme.
 
-The realm export configures the `eigentask` realm to use the eigentask theme for login, account, and email (admin console remains keycloak).
+The realm export configures the `eigentask` realm to use the eigentask theme for login, account, and email (admin console remains keycloak). The login theme uses centered logo + brand name and an optional slogan ("Plan. Schedule. Finish.") in the realm's displayNameHtml; if you already have the realm imported, re-import it (or update Realm Settings → General → Realm display name in Admin Console) to see the slogan.
 
 **Local dev**: The dev override mounts `keycloak/themes` into the Keycloak container and disables theme/template caching (`--spi-theme-cache-themes=false`, `--spi-theme-cache-templates=false`, `--spi-theme-static-max-age=-1`), so theme changes (CSS, templates) are reflected on refresh without restarting Keycloak.
 

@@ -2,7 +2,7 @@
   "realm": "eigentask",
   "enabled": true,
   "displayName": "Eigentask",
-  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Eigentask</span></div>",
+  "displayNameHtml": "<div class=\"kc-logo-wrapper\"><div class=\"kc-logo-text\"><span>Eigen</span><span class=\"kc-logo-text-bold\">Task</span></div><p class=\"kc-logo-slogan\">Plan. Schedule. Finish.</p></div>",
   "loginTheme": "eigentask",
   "accountTheme": "eigentask",
   "adminTheme": "keycloak",

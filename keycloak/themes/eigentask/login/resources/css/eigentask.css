@@ -1,46 +1,98 @@
-/* Eigentask login theme - matches web app design (Tailwind slate/gray, blue-600 primary) */
+/* Eigentask login theme - flat, Notion-inspired (minimal shadows, clean borders) */
+
+/* Input background: set on html so all form controls inherit */
+html {
+  --pf-v5-c-form-control--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
+}
 
 :root {
-  /* Primary: blue-600 / blue-700 hover (frontend buttons) */
+  /* Primary: blue-600 / blue-700 hover */
   --pf-v5-global--primary-color--100: #2563eb;
   --pf-v5-global--primary-color--200: #1d4ed8;
   --pf-v5-global--link--Color: #2563eb;
   --pf-v5-global--link--Color--hover: #1d4ed8;
-  /* Background: slate-50 / white card (frontend landing + header) */
-  --pf-v5-global--BackgroundColor--100: #f8fafc;
+  /* Flat background and surfaces */
+  --pf-v5-global--BackgroundColor--100: #ffffff;
   --pf-v5-global--BackgroundColor--200: #ffffff;
-  /* Text: gray-800 / gray-900 (frontend text) */
-  --pf-v5-global--Color--100: #1f2937;
-  --pf-v5-global--Color--200: #374151;
-  /* Border: gray-200 (frontend borders) */
+  --pf-v5-global--Color--100: #37352f;
+  --pf-v5-global--Color--200: #37352f;
   --pf-v5-global--BorderColor--100: #e5e7eb;
   --pf-v5-global--BorderColor--200: #e5e7eb;
+  /* Override Keycloak v2 branding */
+  --keycloak-logo-url: url("../img/logo.svg");
+  --keycloak-bg-logo-url: none;
+  --keycloak-card-top-color: transparent;
+  /* No elevation: PatternFly panel/card shadow */
+  --pf-v5-c-panel--BoxShadow: none;
+  --pf-v5-c-panel--m-raised--BoxShadow: none;
+  /* Form control / input group background: match page (#f7f6f3) */
+  --pf-v5-c-form-control--BackgroundColor: #f7f6f3;
+  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3;
 }
 
-/* Page background - gradient like frontend landing */
+/* Page background - flat off-white (Notion-style: no gradient, no texture) */
 body.pf-v5-c-login,
+body.login-pf,
 .pf-v5-c-login {
-  background: linear-gradient(to bottom right, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
+  background: #f7f6f3 !important;
   min-height: 100vh;
+  /* Force no panel/card shadow (PatternFly variables) */
+  --pf-v5-c-panel--BoxShadow: none !important;
+  --pf-v5-c-panel--m-raised--BoxShadow: none !important;
+  /* Form/input background: match page so inputs blend in */
+  --pf-v5-c-form-control--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
 }
 
-/* Card/panel - white with subtle border (frontend cards) */
+/* NO shadows anywhere (Notion-style): full-page reset */
+html body *,
+html body *::before,
+html body *::after {
+  box-shadow: none !important;
+}
+html body .pf-v5-c-panel,
+html body .pf-v5-c-panel::before,
+html body .pf-v5-c-panel::after {
+  filter: none !important;
+}
+.pf-v5-c-form-control:focus,
+body input:focus,
+body button:focus {
+  box-shadow: 0 0 0 1px #2563eb !important;
+}
+
+/* Login box: transparent so it blends with page background (Notion-style) */
+body.pf-v5-c-login .pf-v5-c-panel.pf-m-raised,
 .pf-v5-c-panel.pf-m-raised,
-.card-pf {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 1rem !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+.card-pf,
+.pf-v5-c-login .pf-v5-c-panel,
+.pf-v5-c-login .pf-v5-c-panel__main,
+.pf-v5-c-login .pf-v5-c-panel__main-body,
+.pf-v5-c-login .pf-v5-c-login__main,
+.pf-v5-c-login .pf-v5-c-login__main-body,
+body.login-pf .pf-v5-c-panel,
+body.login-pf .pf-v5-c-panel__main,
+body.login-pf .pf-v5-c-panel__main-body,
+body.login-pf .pf-v5-c-login__main,
+body.login-pf .pf-v5-c-login__main-body {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
-/* Primary button - blue-600, hover blue-700, rounded-xl */
+/* Primary button - flat, no shadow */
 .pf-v5-c-button.pf-m-primary,
 input[type="submit"].pf-v5-c-button {
   background-color: #2563eb !important;
   border-color: #2563eb !important;
-  border-radius: 0.75rem !important;
-  font-weight: 600 !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
 }
 
 .pf-v5-c-button.pf-m-primary:hover,
@@ -49,20 +101,21 @@ input[type="submit"].pf-v5-c-button:hover {
   border-color: #1d4ed8 !important;
 }
 
-/* Secondary / link-style button - gray border like frontend "See how it works" */
+/* Secondary button - flat, thin border */
 .pf-v5-c-button.pf-m-secondary {
   border: 1px solid #e5e7eb !important;
-  border-radius: 0.75rem !important;
-  color: #1f2937 !important;
-  font-weight: 600 !important;
+  border-radius: 6px !important;
+  color: #37352f !important;
+  font-weight: 500 !important;
+  background-color: transparent !important;
 }
 
 .pf-v5-c-button.pf-m-secondary:hover {
-  background-color: #f9fafb !important;
-  border-color: #d1d5db !important;
+  background-color: #f7f7f5 !important;
+  border-color: #e5e7eb !important;
 }
 
-/* Links */
+/* Links - flat, no underline by default */
 a {
   color: #2563eb !important;
   font-weight: 500 !important;
@@ -72,39 +125,411 @@ a:hover {
   color: #1d4ed8 !important;
 }
 
-/* Form controls - border gray-200 */
+/* Form controls - match page background (#f7f6f3), flat thin border */
 .pf-v5-c-form-control,
+.pf-v5-c-input-group__item,
+.pf-v5-c-input-group__item.pf-m-box,
 input[type="text"],
 input[type="password"],
-input[type="email"] {
-  border-color: #e5e7eb !important;
-  border-radius: 0.5rem !important;
+input[type="email"],
+input[name="username"],
+input[name="password"],
+body.login-pf .pf-v5-c-form-control,
+body.login-pf .pf-v5-c-input-group__item,
+body.login-pf input[type="text"],
+body.login-pf input[type="password"],
+body.login-pf input[type="email"],
+.pf-v5-c-login .pf-v5-c-form-control,
+.pf-v5-c-login .pf-v5-c-input-group__item,
+.pf-v5-c-login input[type="text"],
+.pf-v5-c-login input[type="password"],
+.pf-v5-c-login input[type="email"],
+html body input[type="text"],
+html body input[type="password"],
+html body input[type="email"] {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  background-color: #f7f6f3 !important;
+  background: #f7f6f3 !important;
+}
+
+/* Override browser autofill white background */
+body.login-pf input:-webkit-autofill,
+body.login-pf input:-webkit-autofill:hover,
+body.login-pf input:-webkit-autofill:focus,
+.pf-v5-c-login input:-webkit-autofill,
+.pf-v5-c-login input:-webkit-autofill:hover,
+.pf-v5-c-login input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px #f7f6f3 inset !important;
+  box-shadow: 0 0 0 30px #f7f6f3 inset !important;
+  background-color: #f7f6f3 !important;
 }
 
 .pf-v5-c-form-control:focus,
 input:focus {
   border-color: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+  outline: none !important;
 }
+/* Focus ring restored after nuclear shadow reset (see above) */
 
-/* Title / branding area - EigenTask style */
+/* Title / branding - flat text */
 .pf-v5-c-title {
-  color: #1f2937 !important;
+  color: #37352f !important;
   font-weight: 600 !important;
 }
 
-.pf-v5-c-login__main-header {
-  color: #1f2937 !important;
+/* Login container: center everything (Notion-style) */
+.pf-v5-c-login__container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
-/* Alerts - keep readable, subtle borders */
+/* Main (form card area): centered */
+.pf-v5-c-login__main {
+  width: 100% !important;
+  max-width: 34rem !important;
+  align-self: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* Header: centered logo + slogan; locale stays top-right */
+body.pf-v5-c-login .pf-v5-c-login__main-header,
+.pf-v5-c-login .pf-v5-c-login__main-header {
+  color: #37352f !important;
+  border-top: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  position: relative !important;
+  grid-template-columns: unset !important;
+  grid-template-areas: unset !important;
+  width: 100% !important;
+  max-width: 34rem !important;
+}
+
+body.pf-v5-c-login .pf-v5-c-login__main-header-utilities,
+.pf-v5-c-login__main-header-utilities {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+}
+
+/* Center the logo/slogan block (first child of header) */
+.pf-v5-c-login__main-header > *:first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Wrapper for centered logo + slogan */
+.kc-logo-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+}
+
+/* Slogan under brand name */
+.kc-logo-slogan {
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  color: #9b9a97 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Logo + brand name (keycloak.v2 hides span by default) */
+div.kc-logo-text {
+  background-image: var(--keycloak-logo-url) !important;
+  background-repeat: no-repeat !important;
+  background-size: 2.5rem 2.5rem !important;
+  height: 2.5rem !important;
+  width: auto !important;
+  min-width: 10rem !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-left: 3rem !important;
+}
+
+div.kc-logo-text span {
+  display: inline !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #37352f !important;
+}
+
+div.kc-logo-text span.kc-logo-text-bold {
+  font-weight: 700 !important;
+}
+
+/* Alerts - flat, thin border */
 .pf-v5-c-alert.pf-m-danger,
 .pf-v5-c-alert.pf-m-warning,
 .pf-v5-c-alert.pf-m-success {
-  border-radius: 0.5rem !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
 }
 
-/* Footer band text - muted gray like frontend footer */
+/* Footer - flat muted text */
 .pf-v5-c-login__main-footer-band-item {
-  color: #6b7280 !important;
+  color: #9b9a97 !important;
 }
+
+/* Password visibility toggle: sit inside right of input, no separate box (modern style) */
+.pf-v5-c-form-control__utilities,
+.pf-v5-c-form-control__utilities *,
+.pf-v5-c-form-control .pf-v5-c-button.pf-m-control,
+.pf-v5-c-form-control .pf-v5-c-button.pf-m-control *,
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control,
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control *,
+.pf-v5-c-form-control__toggle-icon,
+.pf-v5-c-form-control__toggle-icon *,
+.pf-v5-c-input-group__item:last-child,
+.pf-v5-c-input-group__item:last-child * {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Password input group: same width as username; single border; toggle overlays right side */
+.pf-v5-c-input-group {
+  position: relative !important;
+  display: flex !important;
+  width: 100% !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  background-color: #f7f6f3 !important;
+  overflow: hidden !important;
+  /* So last child (toggle) has no borders */
+  --pf-v5-c-input-group__item--m-box--BorderWidth: 0 !important;
+  --pf-v5-c-input-group__item--m-box--BorderLeftColor: transparent !important;
+  --pf-v5-c-input-group__item--m-box--BorderRightColor: transparent !important;
+  --pf-v5-c-input-group__item--m-box--BorderTopColor: transparent !important;
+  --pf-v5-c-input-group__item--m-box--BorderBottomColor: transparent !important;
+}
+
+/* Input fills full width; no inner border so only the outer wrapper looks like one box */
+.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Remove border/radius from the actual input inside – single visual box */
+.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child .pf-v5-c-form-control,
+.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child input {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-right: 2.5rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child .pf-v5-c-form-control:focus,
+.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child input:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Focus ring on the outer wrapper only when password field is focused */
+.pf-v5-c-input-group:focus-within {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb !important;
+}
+
+/* Toggle: absolutely positioned on top of the input on the right (no layout space) */
+.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
+.pf-v5-c-input-group .pf-v5-c-input-group__item.pf-m-box:last-child {
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  border: none !important;
+  border-left: none !important;
+  border-width: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding-right: 0.5rem !important;
+  box-shadow: none !important;
+  outline: none !important;
+  pointer-events: none !important;
+}
+
+/* Toggle button receives clicks */
+.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+  pointer-events: auto !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button,
+.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+  color: #6b7280 !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:hover,
+.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:focus,
+.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:focus-visible,
+.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:active {
+  color: #374151 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+/* No pseudo-element underline/box on toggle button */
+.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
+.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after {
+  display: none !important;
+}
+
+/* Force input fields to match page background (transparent = inherit page #f7f6f3) */
+.pf-v5-c-login__main-body .pf-v5-c-form-control,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item.pf-m-box,
+.pf-v5-c-login__main-body input[type="text"],
+.pf-v5-c-login__main-body input[type="password"],
+.pf-v5-c-login__main-body input[type="email"],
+.pf-v5-c-login__main .pf-v5-c-form-control,
+.pf-v5-c-login__main .pf-v5-c-input-group__item,
+.pf-v5-c-login__main input[type="text"],
+.pf-v5-c-login__main input[type="password"],
+.pf-v5-c-login__main input[type="email"],
+.pf-v5-c-login input,
+.pf-v5-c-login .pf-v5-c-form-control,
+.pf-v5-c-login .pf-v5-c-input-group__item {
+  background-color: #f7f6f3 !important;
+  background: #f7f6f3 !important;
+}
+
+/* Nuclear: any div in main body that might wrap inputs */
+.pf-v5-c-login__main-body .pf-v5-c-input-group,
+.pf-v5-c-login__main .pf-v5-c-input-group {
+  --pf-v5-c-input-group__item--BackgroundColor: #f7f6f3 !important;
+  --pf-v5-c-input-group__item--m-box--BackgroundColor: #f7f6f3 !important;
+}
+.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item,
+.pf-v5-c-login__main .pf-v5-c-input-group .pf-v5-c-input-group__item {
+  background-color: #f7f6f3 !important;
+  background: #f7f6f3 !important;
+}
+
+/* Nuclear: form area is inside panel main body (kcPanelMainBodyClass); match page background */
+.pf-v5-c-panel__main-body *,
+.pf-v5-c-login__main-body * {
+  background-color: #f7f6f3 !important;
+  background: #f7f6f3 !important;
+}
+.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-primary,
+.pf-v5-c-panel__main-body input[type="submit"],
+.pf-v5-c-login__main-body .pf-v5-c-button.pf-m-primary,
+.pf-v5-c-login__main-body input[type="submit"] {
+  background-color: #2563eb !important;
+  background: #2563eb !important;
+}
+
+/* Password visibility toggle: no box, no border, just icon on right (override nuclear; load last) */
+.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities,
+.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *,
+.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *::before,
+.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *::after,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *::before,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *::after,
+.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-control,
+.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-control *,
+.pf-v5-c-login__main-body .pf-v5-c-form-control__utilities,
+.pf-v5-c-login__main-body .pf-v5-c-form-control__utilities *,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child * {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Toggle button: no border, no outline, no box, no underline – ever */
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+  min-width: 0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus-visible,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:active,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus-visible,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:active {
+  border: none !important;
+  border-width: 0 !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Kill any pseudo-element underline or box on the toggle button */
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
+.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after {
+  display: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Single unified input: nuclear background must not repaint toggle area – keep it transparent */
+.pf-v5-c-panel__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
+.pf-v5-c-panel__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child *,
+.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
+.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child * {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
