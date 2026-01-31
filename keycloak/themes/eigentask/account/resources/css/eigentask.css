@@ -1,0 +1,42 @@
+/* Eigentask account console theme - matches web app design */
+
+:root {
+  --pf-v5-global--primary-color--100: #2563eb;
+  --pf-v5-global--primary-color--200: #1d4ed8;
+  --pf-v5-global--link--Color: #2563eb;
+  --pf-v5-global--link--Color--hover: #1d4ed8;
+  --pf-v5-global--BackgroundColor--100: #f8fafc;
+  --pf-v5-global--BackgroundColor--200: #ffffff;
+  --pf-v5-global--Color--100: #1f2937;
+  --pf-v5-global--Color--200: #374151;
+  --pf-v5-global--BorderColor--100: #e5e7eb;
+}
+
+body {
+  background: linear-gradient(to bottom right, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+a {
+  color: #2563eb !important;
+}
+
+a:hover {
+  color: #1d4ed8 !important;
+}
+
+.pf-v5-c-form-control:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}

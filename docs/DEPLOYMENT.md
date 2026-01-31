@@ -97,9 +97,9 @@ For each environment, configure these secrets:
 
 **Alternative**: Create them manually on the server in `/etc/eigentask/staging/` and `/etc/eigentask/prod/`. Use the examples in [envs/](../envs/) (e.g. `envs/keycloak.example.env`) as templates; adjust for staging/prod hostnames and credentials.
 
-**Staging** (required): `api.env`, `web.env`, `app-db.env`, `keycloak.env`, `keycloak-db.env` under `/etc/eigentask/staging/`.
+**Staging** (required): `api.env`, `web.env`, `app-db.env`, `keycloak.env`, `keycloak-db.env` under `/etc/eigentask/staging/`. The deploy script creates `staging/themes/` and copies Keycloak custom themes from the repo.
 
-**Production** (required): Same filenames under `/etc/eigentask/prod/`.
+**Production** (required): Same filenames under `/etc/eigentask/prod/`. The deploy script creates `prod/themes/` and copies Keycloak custom themes from the repo.
 
 **Example web.env** (staging): `API_ORIGIN` and `PUBLIC_API_ORIGIN` must be set or the app will fail on `/app`. Use the internal API URL for SSR and the public URL for redirects:
 

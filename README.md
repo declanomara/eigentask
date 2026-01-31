@@ -21,7 +21,7 @@ The guiding philosophy of EigenTask's design is to minimize vendor lock-in and p
 |------|---------|
 | `api/` | FastAPI app (core, models, routers, alembic) |
 | `web/` | SvelteKit app (routes, lib, static) |
-| `keycloak/` | Keycloak realm export and config |
+| `keycloak/` | Keycloak realm export, config, and custom themes (`themes/`) |
 | `nginx/` | Nginx configs for staging/production |
 | `envs/` | Env files: `*.dev.env` for local dev, `*.example.env` as templates |
 | `docs/` | Deployment, volume migration, and other docs |
@@ -83,6 +83,7 @@ This runs:
 **Note:** Keycloak automatically imports the `eigentask` realm on first startup (configured in `keycloak/realm-export/eigentask-realm.json`). This includes:
 - The `eigentask` realm
 - The `eigentask` client with proper redirect URIs
+- The **eigentask** custom theme (login, account, email) matching the web app design
 - Test users:
   - `testuser` / `password` (email: `test@example.com`)
   - `admin` / `admin` (email: `admin@example.com`)
