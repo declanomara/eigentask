@@ -52,9 +52,8 @@
 }
 
 .kc-logo-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: block;
+  text-align: center;
   margin: 0;
   padding: 0;
   background: none;
@@ -71,6 +70,7 @@
 }
 
 .kc-logo-text span {
+  display: inline;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--eigentask-text);
