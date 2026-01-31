@@ -20,6 +20,12 @@ services:
     volumes:
       - ${ENV_FILE_PATH:-/etc/eigentask}/prod/themes:/opt/keycloak/themes
       - ./keycloak/realm-export:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD-SHELL", "{ printf 'GET /realms/eigentask/.well-known/openid-configuration HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.1 200'; } 0<>/dev/tcp/localhost/8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     networks:
       - eigentask-prod
 
