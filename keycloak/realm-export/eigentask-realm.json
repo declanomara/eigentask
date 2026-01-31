@@ -93,10 +93,18 @@
       "defaultRoles": [],
       "redirectUris": [
         "http://localhost:8000/auth/callback",
-        "http://localhost:3000/*"
+        "http://localhost:3000/*",
+        "https://staging-api.eigentask.com/auth/callback",
+        "https://staging.eigentask.com/*",
+        "https://api.eigentask.com/auth/callback",
+        "https://eigentask.com/*",
+        "https://www.eigentask.com/*"
       ],
       "webOrigins": [
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://staging.eigentask.com",
+        "https://eigentask.com",
+        "https://www.eigentask.com"
       ],
       "notBefore": 0,
       "bearerOnly": false,
