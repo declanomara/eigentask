@@ -1,0 +1,73 @@
+# Staging overlay. Use with base: docker compose -f docker-compose.yml -f docker-compose.staging.yml up
+
+services:
+  keycloak-db:
+    container_name: eigentask-staging-keycloak-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/keycloak-db.env
+    volumes:
+      - keycloak_db_data_staging:/var/lib/postgresql/data
+    networks:
+      - eigentask-staging
+
+  keycloak:
+    container_name: eigentask-staging-keycloak
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/keycloak.env
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded", "--import-realm"]
+    ports:
+      - "8081:8080"
+    volumes:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/themes:/opt/keycloak/themes
+      - ./keycloak/realm-export:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD-SHELL", "{ printf 'GET /realms/eigentask/.well-known/openid-configuration HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.1 200'; } 0<>/dev/tcp/localhost/8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - eigentask-staging
+
+  app-db:
+    container_name: eigentask-staging-app-db
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/app-db.env
+    volumes:
+      - app_db_data_staging:/var/lib/postgresql/data
+    networks:
+      - eigentask-staging
+
+  redis:
+    container_name: eigentask-staging-redis
+    volumes:
+      - redis_data_staging:/data
+    networks:
+      - eigentask-staging
+
+  api:
+    container_name: eigentask-staging-api
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/api.env
+    ports:
+      - "8001:8000"
+    networks:
+      - eigentask-staging
+
+  web:
+    container_name: eigentask-staging-web
+    env_file:
+      - ${ENV_FILE_PATH:-/etc/eigentask}/staging/web.env
+    ports:
+      - "3001:3000"
+    networks:
+      - eigentask-staging
+
+volumes:
+  keycloak_db_data_staging:
+  app_db_data_staging:
+  redis_data_staging:
+
+networks:
+  eigentask-staging:
+    name: eigentask-staging

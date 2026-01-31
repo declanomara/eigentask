@@ -8,7 +8,7 @@ The `realm-export/` directory contains a Keycloak realm export that is automatic
 
 ### Automatic Import
 
-When you start the dev environment with `docker compose -f docker-compose.dev.yml up`, Keycloak will:
+When you start the dev environment with `docker compose up`, Keycloak will:
 1. Check if the `eigentask` realm exists
 2. If it doesn't exist, import `realm-export/eigentask-realm.json`
 3. If it already exists, skip the import (to preserve any manual changes)
@@ -39,8 +39,8 @@ If you need to modify the realm configuration:
    - Edit `realm-export/eigentask-realm.json`
    - Delete the Keycloak volume to force re-import:
      ```bash
-     docker compose -f docker-compose.dev.yml down -v keycloak_db_data_dev
-     docker compose -f docker-compose.dev.yml up -d
+     docker compose down -v keycloak_db_data_dev
+     docker compose up -d
      ```
 
 ### Resetting Keycloak
@@ -49,8 +49,8 @@ To reset Keycloak to the default configuration:
 
 ```bash
 # Stop and remove the Keycloak database volume
-docker compose -f docker-compose.dev.yml down -v keycloak_db_data_dev
+docker compose down -v keycloak_db_data_dev
 
 # Start services again (realm will be re-imported)
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d
 ```

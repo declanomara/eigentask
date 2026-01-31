@@ -1,41 +1,31 @@
+# Base compose: service topology only. Not runnable on its own.
+# Use with an override:
+#   dev:    docker compose up                    (merges docker-compose.override.yml)
+#   staging: docker compose -f docker-compose.yml -f docker-compose.staging.yml up
+#   prod:   docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
 services:
   keycloak-db:
     image: postgres:15
-    container_name: keycloak-db
-    env_file:
-      - /etc/eigentask/keycloak-db.env
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
-    container_name: keycloak
-    env_file:
-      - /etc/eigentask/keycloak.env
-
-    command: ["start", "--http-enabled=true"]
-    ports:
-      - "8080:8080"
-    volumes:
-      - /etc/eigentask/themes:/opt/keycloak/themes
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded"]
     depends_on:
       - keycloak-db
     restart: unless-stopped
 
-  # --- App stack ---
   app-db:
     image: postgres:16-alpine
-    container_name: app-db
-    env_file:
-      - /etc/eigentask/app-db.env
     volumes:
       - app_db_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: eigentask-redis
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -44,32 +34,20 @@ services:
   api:
     build:
       context: ./api
-    container_name: eigentask-api
-    env_file:
-      - /etc/eigentask/api.env
     depends_on:
       - app-db
       - redis
-    ports:
-      - "8000:8000"
     restart: unless-stopped
 
   web:
     build:
       context: ./web
       dockerfile: Dockerfile
-    container_name: eigentask-web
-    env_file:
-      - /etc/eigentask/web.env
     depends_on:
       - api
-    ports:
-      - "3000:3000"
     restart: unless-stopped
 
 volumes:
   keycloak_db_data:
-    external: true
-    name: keycloak_db_data
   app_db_data:
   redis_data:

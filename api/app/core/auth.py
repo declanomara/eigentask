@@ -256,8 +256,14 @@ def get_current_user(
     ],
 ) -> dict[str, Any]:
     """Extract user information from verified token."""
+    sub = payload.get("sub")
+    if not sub:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing subject (sub) claim",
+        )
     return {
-        "sub": payload.get("sub"),
+        "sub": sub,
         "preferred_username": payload.get("preferred_username"),
         "email": payload.get("email"),
         "name": payload.get("name"),

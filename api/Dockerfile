@@ -6,7 +6,7 @@ WORKDIR /app
 # Install curl and uv
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
     && curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+ENV PATH="/root/.local/bin:$PATH"
 
 # Install project (PEP 621/pyproject)
 # Copy dependency files and package structure for Docker layer caching

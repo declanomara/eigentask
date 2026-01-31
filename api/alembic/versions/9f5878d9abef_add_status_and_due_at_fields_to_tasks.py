@@ -39,3 +39,8 @@ def downgrade() -> None:
     op.drop_column('tasks', 'due_at')
     op.drop_column('tasks', 'status')
     # ### end Alembic commands ###
+
+    # Drop the enum type created in upgrade (must run after dropping the column that uses it)
+    bind = op.get_bind()
+    task_status_enum = sa.Enum('BACKLOG', 'PLANNED', 'COMPLETED', 'REMOVED', name='task_status')
+    task_status_enum.drop(bind, checkfirst=True)

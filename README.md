@@ -17,50 +17,40 @@ The guiding philosophy of EigenTask's design is to minimize vendor lock-in and p
 
 ## Project layout
 
-- `api/` — FastAPI app
-  - `app/core/` — configuration, DB setup, auth/session helpers
-  - `app/models/` — SQLAlchemy models
-  - `app/routers/` — API routers (auth, users, tasks)
-  - `alembic/` — Alembic env and versioned migrations
-- `web/` — SvelteKit app
-  - `src/routes/` — public and protected routes
-  - `src/lib/` — API client and UI components
-  - `static/` — static assets (e.g., `favicon.svg`)
-- `envs/` — environment files for local dev
-- `docker-compose.dev.yml` — dev services
-- `migrate.sh` — Alembic helper script (see below)
+| Path | Purpose |
+|------|---------|
+| `api/` | FastAPI app (core, models, routers, alembic) |
+| `web/` | SvelteKit app (routes, lib, static) |
+| `keycloak/` | Keycloak realm export and config |
+| `nginx/` | Nginx configs for staging/production |
+| `envs/` | Env files: `*.dev.env` for local dev, `*.example.env` as templates |
+| `docs/` | Deployment, volume migration, and other docs |
+| `scripts/` | `deploy.sh` (CI deploy), `migrate.sh` (Alembic helper) |
+| Root | `docker-compose.yml` (base), `docker-compose.override.yml` (dev), `docker-compose.staging.yml` / `.prod.yml` (overlays) |
 
-## Database migrations (migrate.sh)
+**Deployment**: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for GitHub Actions, server setup, and env files.
 
-We use a simple wrapper `migrate.sh` to run Alembic commands consistently in local Docker or on a host.
+## Database migrations (scripts/migrate.sh)
 
-Usage:
+We use a simple wrapper to run Alembic commands in local Docker or on a host. **Run from repo root** so `docker compose` finds the compose files.
 
 ```bash
 # Create a new autogenerate migration
-./migrate.sh revision "Add foo to bar"
+./scripts/migrate.sh revision "Add foo to bar"
 
 # Apply all migrations
-./migrate.sh upgrade
+./scripts/migrate.sh upgrade
 
 # Downgrade one step (or pass a specific revision)
-./migrate.sh downgrade -1
+./scripts/migrate.sh downgrade -1
 
-# Show current head
-./migrate.sh current
-
-# Show history
-./migrate.sh history
-
-# Stamp the DB to head without applying migrations
-./migrate.sh stamp
+# Show current head / history / stamp
+./scripts/migrate.sh current
+./scripts/migrate.sh history
+./scripts/migrate.sh stamp
 ```
 
-Notes:
-
-- The script will execute inside the running API container when available, so `DATABASE_URL` from `envs/api.dev.env` is used automatically.
-- Autogenerate will diff model metadata (`app/core/db.Base.metadata`) against the DB. Review autogen results before committing.
-- Commit migration files in `api/alembic/versions/` with your changes.
+Notes: The script runs inside the API container when available (using `envs/api.dev.env`). Review autogenerate output before committing; commit migration files in `api/alembic/versions/`.
 
 # Installation
 
@@ -71,17 +61,15 @@ Notes:
 
 2) Configure environment
 
-- Copy and adjust the example env files in `envs/` as needed.
-  - `envs/api.dev.env` (API, Redis, Postgres, OIDC settings)
-  - `envs/web.dev.env` (Web → API origins)
-  - `envs/keycloak.dev.env` (Keycloak admin credentials - already configured for local dev)
-  - `envs/keycloak-db.dev.env` (Keycloak database - already configured for local dev)
+- Copy example env files from `envs/*.example.env` to `envs/*.dev.env` and adjust. The repo includes `envs/*.dev.env` for local dev (API, web, Keycloak, Keycloak DB, app DB); use `envs/*.example.env` as templates for staging/production or new setups.
 
 3) Start services
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d --build
+docker compose up -d --build
 ```
+
+This merges the base compose with the dev override (no env or ports in base, so base-only is not runnable). To run staging or production locally you would use: `docker compose -f docker-compose.yml -f docker-compose.staging.yml up` (with env files in place).
 
 This runs:
 
@@ -107,7 +95,7 @@ If you need to modify the realm configuration, you can:
 4) Apply database migrations
 
 ```bash
-./migrate.sh upgrade
+./scripts/migrate.sh upgrade
 ```
 
 The API also creates tables on startup as a safeguard, but you should treat Alembic migrations as the source of truth and always run them.
@@ -210,8 +198,8 @@ This workflow ensures:
 2) Make changes with clear, focused commits.
 3) If you change models:
    - Update SQLAlchemy models.
-   - Generate a migration: `./migrate.sh revision "Your message"`
-   - Review and apply: `./migrate.sh upgrade`
+   - Generate a migration: `./scripts/migrate.sh revision "Your message"`
+   - Review and apply: `./scripts/migrate.sh upgrade`
 4) Open a PR targeting `staging` with a concise description, screenshots if UI changes, and any migration notes.
 5) After merge to `staging`, changes will auto-deploy to the dev environment for testing.
 6) Weekly, `staging` is automatically merged to `main` for production deployment.
