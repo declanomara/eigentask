@@ -26,6 +26,8 @@ The deployment workflows use GitHub Environments to organize secrets. You need t
 
 ### Required Secrets per Environment
 
+Env files are **not** stored as GitHub secrets. They must exist on the server at `/etc/eigentask/staging/` and `/etc/eigentask/production/` (see Server Setup below).
+
 For each environment, configure these secrets:
 
 **Staging Environment:**
@@ -33,10 +35,9 @@ For each environment, configure these secrets:
 - `HOST`: Hostname or IP address of the staging server
 - `USER`: SSH username for the staging server
 - `DEPLOY_PATH`: (Optional) Path to the deployment directory on the server (defaults to `/opt/eigentask`)
-- `API_ENV`, `WEB_ENV`, `APP_DB_ENV`, `KEYCLOAK_ENV`, `KEYCLOAK_DB_ENV`: Environment file contents
 
 **Production Environment:**
-- `SSH_PRIVATE_KEY`, `HOST`, `USER`, `DEPLOY_PATH`, `API_ENV`, `WEB_ENV`, `APP_DB_ENV`, `KEYCLOAK_ENV`, `KEYCLOAK_DB_ENV`: Same keys with production-specific values
+- `SSH_PRIVATE_KEY`, `HOST`, `USER`, `DEPLOY_PATH`: Same keys with production-specific values
 
 ### Setting up SSH Access
 
@@ -52,7 +53,7 @@ For each environment, configure these secrets:
 
 3. Add the private key to GitHub Environment Secrets (Settings → Environments → staging → Add secret: `SSH_PRIVATE_KEY`).
 
-4. Add the other secrets to the staging environment (`HOST`, `USER`, `DEPLOY_PATH`, and the env file contents).
+4. Add the other secrets to the staging environment (`HOST`, `USER`, `DEPLOY_PATH`).
 
 5. Repeat for the **`production`** environment with production-specific values.
 
@@ -81,7 +82,7 @@ For each environment, configure these secrets:
 
 3. **Create environment files directories**:
    ```bash
-   sudo mkdir -p /etc/eigentask/staging /etc/eigentask/prod
+   sudo mkdir -p /etc/eigentask/staging /etc/eigentask/production
    sudo chown -R $USER:$USER /etc/eigentask
    ```
 
@@ -91,15 +92,13 @@ For each environment, configure these secrets:
 
 ### Required Environment Files
 
-**Important**: Environment files are NOT stored in git (for security).
+**Important**: Environment files are NOT stored in git or GitHub secrets. They must be staged on the server before deploy runs.
 
-**Recommended**: Use automated deployment via GitHub Secrets; the workflow creates these files from secrets.
+Create them on the server in `/etc/eigentask/staging/` and `/etc/eigentask/production/`. Use the examples in [envs/](../envs/) (e.g. `envs/keycloak.example.env`) as templates; adjust for staging/production hostnames and credentials.
 
-**Alternative**: Create them manually on the server in `/etc/eigentask/staging/` and `/etc/eigentask/prod/`. Use the examples in [envs/](../envs/) (e.g. `envs/keycloak.example.env`) as templates; adjust for staging/prod hostnames and credentials.
+**Staging** (required): `api.env`, `web.env`, `app-db.env`, `keycloak.env`, `keycloak-db.env` under `/etc/eigentask/staging/`. The deploy script copies Keycloak themes into `staging/themes/`.
 
-**Staging** (required): `api.env`, `web.env`, `app-db.env`, `keycloak.env`, `keycloak-db.env` under `/etc/eigentask/staging/`. The deploy script creates `staging/themes/` and copies Keycloak custom themes from the repo.
-
-**Production** (required): Same filenames under `/etc/eigentask/prod/`. The deploy script creates `prod/themes/` and copies Keycloak custom themes from the repo.
+**Production** (required): Same filenames under `/etc/eigentask/production/`. The deploy script copies Keycloak themes into `production/themes/`.
 
 **Example web.env** (staging): `API_ORIGIN` and `PUBLIC_API_ORIGIN` must be set or the app will fail on `/app`. Use the internal API URL for SSR and the public URL for redirects:
 
@@ -125,7 +124,7 @@ KC_PROXY_HEADERS=xforwarded
 KC_PROXY_ADDRESS_FORWARDING=true
 ```
 
-**Security**: If creating manually, run `sudo chmod 600 /etc/eigentask/staging/*.env /etc/eigentask/prod/*.env`.
+**Security**: Run `sudo chmod 600 /etc/eigentask/staging/*.env /etc/eigentask/production/*.env`.
 
 ### Database Volume Persistence
 
@@ -142,11 +141,11 @@ Staging and production use Docker named volumes. Data persists across restarts a
 When code is pushed to `staging` (or `main` for production):
 
 1. CI workflow runs (lint, type check, tests).
-2. If CI passes, deploy workflow runs, SSHs to the server, writes env files from secrets, pulls code, runs `docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d` (or prod overlay), and verifies services.
+2. If CI passes, deploy workflow runs, SSHs to the server, verifies env files exist at `/etc/eigentask/staging/` or `/etc/eigentask/production/`, pulls code, copies Keycloak themes, runs `docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d` (or prod overlay), and verifies services.
 
 **Manual trigger**: Actions → Deploy → Run workflow → choose branch/environment.
 
 ## Troubleshooting
 
-- **SSH / "Required env file missing"**: Check secrets (`HOST`, `USER`, `SSH_PRIVATE_KEY`) and that env files exist under `/etc/eigentask/<env>/`.
+- **SSH / "Required env file missing"**: Check secrets (`HOST`, `USER`, `SSH_PRIVATE_KEY`) and that env files exist under `/etc/eigentask/staging/` or `/etc/eigentask/production/`.
 - **Containers fail to start**: On the server run `ENV_FILE_PATH=/etc/eigentask docker compose -f docker-compose.yml -f docker-compose.staging.yml logs` (or prod). Check disk space, env file syntax, and [VOLUME-MIGRATION.md](VOLUME-MIGRATION.md) if migrating.

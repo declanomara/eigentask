@@ -28,51 +28,7 @@ fi
 
 echo "Deploying to ${ENV} environment (branch: ${DEPLOY_BRANCH})"
 
-# Deploy environment files
-ssh ${DEPLOY_USER}@${DEPLOY_HOST} bash -s << EOF
-    set -e
-    ENV_PATH=\${ENV_FILE_PATH:-/etc/eigentask}
-    ENV_DIR="\${ENV_PATH}/${ENV_DIR}"
-    
-    echo "Creating ${ENV} environment files directory..."
-    sudo mkdir -p "\${ENV_DIR}"
-    sudo chown \${USER}:\${USER} "\${ENV_DIR}"
-    
-            echo "Deploying environment files from GitHub Secrets..."
-            
-            # Write each env file (GitHub automatically masks secrets in logs)
-            # Use cat with heredoc to preserve all content including newlines
-            cat > /tmp/api.env << 'FILE_EOF'
-          ${API_ENV}
-          FILE_EOF
-            cat > /tmp/web.env << 'FILE_EOF'
-          ${WEB_ENV}
-          FILE_EOF
-            cat > /tmp/app-db.env << 'FILE_EOF'
-          ${APP_DB_ENV}
-          FILE_EOF
-            cat > /tmp/keycloak.env << 'FILE_EOF'
-          ${KEYCLOAK_ENV}
-          FILE_EOF
-            cat > /tmp/keycloak-db.env << 'FILE_EOF'
-          ${KEYCLOAK_DB_ENV}
-          FILE_EOF
-            
-            # Move files to final location
-            sudo mv /tmp/api.env "\${ENV_DIR}/api.env"
-            sudo mv /tmp/web.env "\${ENV_DIR}/web.env"
-            sudo mv /tmp/app-db.env "\${ENV_DIR}/app-db.env"
-            sudo mv /tmp/keycloak.env "\${ENV_DIR}/keycloak.env"
-            sudo mv /tmp/keycloak-db.env "\${ENV_DIR}/keycloak-db.env"
-    
-    # Set secure permissions
-    sudo chmod 600 "\${ENV_DIR}"/*.env
-    sudo chown \${USER}:\${USER} "\${ENV_DIR}"/*.env
-    
-    echo "Environment files deployed successfully!"
-    ls -la "\${ENV_DIR}"
-EOF
-
+# Env files must already exist on the server at /etc/eigentask/production/ and /etc/eigentask/staging/
 # Deploy application
 ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     set -e
@@ -122,9 +78,8 @@ ssh ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
     fi
     
     echo "Copying Keycloak themes to environment themes directory..."
-    THEMES_SUBDIR=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "staging")
-    mkdir -p "\${ENV_PATH}/\${THEMES_SUBDIR}/themes"
-    cp -r keycloak/themes/* "\${ENV_PATH}/\${THEMES_SUBDIR}/themes/"
+    mkdir -p "\${ENV_PATH}/${ENV_DIR}/themes"
+    cp -r keycloak/themes/* "\${ENV_PATH}/${ENV_DIR}/themes/"
     echo "Keycloak themes deployed."
     
     echo "Ensuring Docker network exists with correct labels..."
