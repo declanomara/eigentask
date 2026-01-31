@@ -1,541 +1,350 @@
-/* Eigentask login theme - flat, minimal shadows, clean borders */
+/* Eigentask login theme – minimal styling from scratch (extends base, no PatternFly) */
 
-/*
- * Theme – single source of truth for page/surface background.
- * Change this to update the login page background app-wide.
- */
 :root {
   --eigentask-bg: #fff;
+  --eigentask-border: #e5e7eb;
+  --eigentask-primary: #2563eb;
+  --eigentask-primary-hover: #1d4ed8;
+  --eigentask-text: #37352f;
+  --eigentask-text-muted: #9b9a97;
+  --eigentask-focus: 0 0 0 1px var(--eigentask-primary);
 }
 
-/* Input background: inherit from theme */
-html {
-  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg) !important;
-  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
-}
-
-:root {
-  /* Primary: blue-600 / blue-700 hover */
-  --pf-v5-global--primary-color--100: #2563eb;
-  --pf-v5-global--primary-color--200: #1d4ed8;
-  --pf-v5-global--link--Color: #2563eb;
-  --pf-v5-global--link--Color--hover: #1d4ed8;
-  /* Flat background and surfaces – use theme token */
-  --pf-v5-global--BackgroundColor--100: var(--eigentask-bg);
-  --pf-v5-global--BackgroundColor--200: var(--eigentask-bg);
-  --pf-v5-global--Color--100: #37352f;
-  --pf-v5-global--Color--200: #37352f;
-  --pf-v5-global--BorderColor--100: #e5e7eb;
-  --pf-v5-global--BorderColor--200: #e5e7eb;
-  /* Override Keycloak v2 branding */
-  --keycloak-logo-url: url("../img/logo.svg");
-  --keycloak-bg-logo-url: none;
-  --keycloak-card-top-color: transparent;
-  /* No elevation: PatternFly panel/card shadow */
-  --pf-v5-c-panel--BoxShadow: none;
-  --pf-v5-c-panel--m-raised--BoxShadow: none;
-  /* Form control / input group: match page */
-  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg);
-  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg);
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg);
-}
-
-/* Page background – use theme token */
-body.pf-v5-c-login,
-body.login-pf,
-.pf-v5-c-login {
-  background: var(--eigentask-bg) !important;
+/* Page */
+.eigentask-html,
+.eigentask-body {
+  margin: 0;
   min-height: 100vh;
-  --pf-v5-c-panel--BoxShadow: none !important;
-  --pf-v5-c-panel--m-raised--BoxShadow: none !important;
-  --pf-v5-c-form-control--BackgroundColor: var(--eigentask-bg) !important;
-  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
+  background: var(--eigentask-bg);
+  color: var(--eigentask-text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* NO shadows anywhere (Notion-style): full-page reset */
-html body *,
-html body *::before,
-html body *::after {
-  box-shadow: none !important;
-}
-html body .pf-v5-c-panel,
-html body .pf-v5-c-panel::before,
-html body .pf-v5-c-panel::after {
-  filter: none !important;
-}
-.pf-v5-c-form-control:focus,
-body input:focus,
-body button:focus {
-  box-shadow: 0 0 0 1px #2563eb !important;
+.eigentask-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  max-width: 24rem;
+  margin: 0 auto;
+  margin-top: 12vh;
 }
 
-/* Login box: transparent so it blends with page background (Notion-style) */
-body.pf-v5-c-login .pf-v5-c-panel.pf-m-raised,
-.pf-v5-c-panel.pf-m-raised,
-.card-pf,
-.pf-v5-c-login .pf-v5-c-panel,
-.pf-v5-c-login .pf-v5-c-panel__main,
-.pf-v5-c-login .pf-v5-c-panel__main-body,
-.pf-v5-c-login .pf-v5-c-login__main,
-.pf-v5-c-login .pf-v5-c-login__main-body,
-body.login-pf .pf-v5-c-panel,
-body.login-pf .pf-v5-c-panel__main,
-body.login-pf .pf-v5-c-panel__main-body,
-body.login-pf .pf-v5-c-login__main,
-body.login-pf .pf-v5-c-login__main-body {
-  background-color: transparent !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
+/* Header: logo + brand above form */
+.eigentask-header {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
-/* Primary button - flat, no shadow */
-.pf-v5-c-button.pf-m-primary,
-input[type="submit"].pf-v5-c-button {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
-  border-radius: 6px !important;
-  font-weight: 500 !important;
-  box-shadow: none !important;
+.eigentask-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.pf-v5-c-button.pf-m-primary:hover,
-input[type="submit"].pf-v5-c-button:hover {
-  background-color: #1d4ed8 !important;
-  border-color: #1d4ed8 !important;
-}
-
-/* Secondary button - flat, thin border */
-.pf-v5-c-button.pf-m-secondary {
-  border: 1px solid #e5e7eb !important;
-  border-radius: 6px !important;
-  color: #37352f !important;
-  font-weight: 500 !important;
-  background-color: transparent !important;
-}
-
-.pf-v5-c-button.pf-m-secondary:hover {
-  background-color: #f7f7f5 !important;
-  border-color: #e5e7eb !important;
-}
-
-/* Links - flat, no underline by default */
-a {
-  color: #2563eb !important;
-  font-weight: 500 !important;
-}
-
-a:hover {
-  color: #1d4ed8 !important;
-}
-
-/* Form controls – match page (--eigentask-bg), flat thin border */
-.pf-v5-c-form-control,
-.pf-v5-c-input-group__item,
-.pf-v5-c-input-group__item.pf-m-box,
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[name="username"],
-input[name="password"],
-body.login-pf .pf-v5-c-form-control,
-body.login-pf .pf-v5-c-input-group__item,
-body.login-pf input[type="text"],
-body.login-pf input[type="password"],
-body.login-pf input[type="email"],
-.pf-v5-c-login .pf-v5-c-form-control,
-.pf-v5-c-login .pf-v5-c-input-group__item,
-.pf-v5-c-login input[type="text"],
-.pf-v5-c-login input[type="password"],
-.pf-v5-c-login input[type="email"],
-html body input[type="text"],
-html body input[type="password"],
-html body input[type="email"] {
-  border: 1px solid #e5e7eb !important;
-  border-radius: 6px !important;
-  background-color: var(--eigentask-bg) !important;
-  background: var(--eigentask-bg) !important;
-}
-
-/* Override browser autofill – use theme background */
-body.login-pf input:-webkit-autofill,
-body.login-pf input:-webkit-autofill:hover,
-body.login-pf input:-webkit-autofill:focus,
-.pf-v5-c-login input:-webkit-autofill,
-.pf-v5-c-login input:-webkit-autofill:hover,
-.pf-v5-c-login input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 30px var(--eigentask-bg) inset !important;
-  box-shadow: 0 0 0 30px var(--eigentask-bg) inset !important;
-  background-color: var(--eigentask-bg) !important;
-}
-
-.pf-v5-c-form-control:focus,
-input:focus {
-  border-color: #2563eb !important;
-  outline: none !important;
-}
-/* Focus ring restored after nuclear shadow reset (see above) */
-
-/* Title / branding - flat text */
-.pf-v5-c-title {
-  color: #37352f !important;
-  font-weight: 600 !important;
-}
-
-/* Login container: center everything (Notion-style) */
-.pf-v5-c-login__container {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 100% !important;
-}
-
-/* Main (form card area): centered */
-.pf-v5-c-login__main {
-  width: 100% !important;
-  max-width: 34rem !important;
-  align-self: center !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-
-/* Header: centered logo + slogan; locale stays top-right */
-body.pf-v5-c-login .pf-v5-c-login__main-header,
-.pf-v5-c-login .pf-v5-c-login__main-header {
-  color: #37352f !important;
-  border-top: none !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-  position: relative !important;
-  grid-template-columns: unset !important;
-  grid-template-areas: unset !important;
-  width: 100% !important;
-  max-width: 34rem !important;
-}
-
-body.pf-v5-c-login .pf-v5-c-login__main-header-utilities,
-.pf-v5-c-login__main-header-utilities {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-}
-
-/* Center the logo/slogan block (first child of header) */
-.pf-v5-c-login__main-header > *:first-child {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 100% !important;
-  justify-content: center !important;
-  text-align: center !important;
-}
-
-/* Wrapper for centered logo + slogan */
+/* Branding: logo above text (from realm displayNameHtml) */
 .kc-logo-wrapper {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 0.25rem !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-/* Slogan under brand name */
+.kc-logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  background: none;
+  height: auto;
+}
+
+.kc-logo-text::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: url("../img/logo.svg") center/contain no-repeat;
+  margin-bottom: 0.25rem;
+}
+
+.kc-logo-text span {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--eigentask-text);
+}
+
+.kc-logo-text span.kc-logo-text-bold {
+  font-weight: 700;
+}
+
 .kc-logo-slogan {
-  margin: 0 !important;
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  color: #9b9a97 !important;
-  letter-spacing: 0 !important;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--eigentask-text-muted);
 }
 
-/* Logo + brand name (keycloak.v2 hides span by default) */
-div.kc-logo-text {
-  background-image: var(--keycloak-logo-url) !important;
-  background-repeat: no-repeat !important;
-  background-size: 2.5rem 2.5rem !important;
-  height: 2.5rem !important;
-  width: auto !important;
-  min-width: 10rem !important;
-  margin: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding-left: 3rem !important;
+/* Form card */
+.eigentask-card {
+  width: 100%;
 }
 
-div.kc-logo-text span {
-  display: inline !important;
-  font-size: 1.25rem !important;
-  font-weight: 600 !important;
-  color: #37352f !important;
+.eigentask-form-header {
+  position: relative;
+  margin-bottom: 1rem;
 }
 
-div.kc-logo-text span.kc-logo-text-bold {
-  font-weight: 700 !important;
+#kc-locale {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.875rem;
 }
 
-/* Alerts - flat, thin border */
-.pf-v5-c-alert.pf-m-danger,
-.pf-v5-c-alert.pf-m-warning,
-.pf-v5-c-alert.pf-m-success {
-  border-radius: 6px !important;
-  box-shadow: none !important;
+#kc-locale a,
+#kc-locale button {
+  color: var(--eigentask-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.25rem 0.5rem;
 }
 
-/* Footer - flat muted text */
-.pf-v5-c-login__main-footer-band-item {
-  color: #9b9a97 !important;
+#kc-locale a:hover,
+#kc-locale button:hover {
+  color: var(--eigentask-primary-hover);
 }
 
-/* Password visibility toggle: sit inside right of input, no separate box (modern style) */
-.pf-v5-c-form-control__utilities,
-.pf-v5-c-form-control__utilities *,
-.pf-v5-c-form-control .pf-v5-c-button.pf-m-control,
-.pf-v5-c-form-control .pf-v5-c-button.pf-m-control *,
-.pf-v5-c-input-group .pf-v5-c-button.pf-m-control,
-.pf-v5-c-input-group .pf-v5-c-button.pf-m-control *,
-.pf-v5-c-form-control__toggle-icon,
-.pf-v5-c-form-control__toggle-icon *,
-.pf-v5-c-input-group__item:last-child,
-.pf-v5-c-input-group__item:last-child * {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+#kc-page-title {
+  display: none;
 }
 
-/* Password input group: same width as username; single border; toggle overlays right side */
-.pf-v5-c-input-group {
-  position: relative !important;
-  display: flex !important;
-  width: 100% !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 6px !important;
-  background-color: var(--eigentask-bg) !important;
-  overflow: hidden !important;
-  /* So last child (toggle) has no borders */
-  --pf-v5-c-input-group__item--m-box--BorderWidth: 0 !important;
-  --pf-v5-c-input-group__item--m-box--BorderLeftColor: transparent !important;
-  --pf-v5-c-input-group__item--m-box--BorderRightColor: transparent !important;
-  --pf-v5-c-input-group__item--m-box--BorderTopColor: transparent !important;
-  --pf-v5-c-input-group__item--m-box--BorderBottomColor: transparent !important;
+/* Locale (if enabled) */
+.eigentask-form-header .menu-button-links {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
-/* Input fills full width; no inner border so only the outer wrapper looks like one box */
-.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child {
-  flex: 1 1 0% !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  max-width: none !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+/* Content area */
+#kc-content-wrapper {
+  width: 100%;
 }
 
-/* Remove border/radius from the actual input inside – single visual box */
-.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child .pf-v5-c-form-control,
-.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child input {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding-right: 2.5rem !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  background: transparent !important;
-  background-color: transparent !important;
+/* Form */
+#kc-form,
+#kc-form-wrapper {
+  width: 100%;
 }
 
-.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child .pf-v5-c-form-control:focus,
-.pf-v5-c-input-group .pf-v5-c-input-group__item:first-child input:focus {
-  border: none !important;
-  box-shadow: none !important;
+.eigentask-field {
+  margin-bottom: 1rem;
 }
 
-/* Focus ring on the outer wrapper only when password field is focused */
-.pf-v5-c-input-group:focus-within {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 1px #2563eb !important;
+.eigentask-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--eigentask-text);
 }
 
-/* Toggle: absolutely positioned on top of the input on the right (no layout space) */
-.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
-.pf-v5-c-input-group .pf-v5-c-input-group__item.pf-m-box:last-child {
-  position: absolute !important;
-  right: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  left: auto !important;
-  width: auto !important;
-  display: flex !important;
-  align-items: center !important;
-  border: none !important;
-  border-left: none !important;
-  border-width: 0 !important;
-  background: transparent !important;
-  background-color: transparent !important;
-  padding-right: 0.5rem !important;
-  box-shadow: none !important;
-  outline: none !important;
-  pointer-events: none !important;
+.eigentask-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--eigentask-text);
+  background: var(--eigentask-bg);
+  border: 1px solid var(--eigentask-border);
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
-/* Toggle button receives clicks */
-.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
-  pointer-events: auto !important;
+.eigentask-input:focus {
+  outline: none;
+  border-color: var(--eigentask-primary);
+  box-shadow: var(--eigentask-focus);
 }
 
-.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button,
-.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
-  color: #6b7280 !important;
-  border: none !important;
-  border-width: 0 !important;
-  border-bottom: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
+/* Password row: single box, toggle floats on right */
+.eigentask-input-wrap {
+  position: relative;
+  border: 1px solid var(--eigentask-border);
+  border-radius: 6px;
+  background: var(--eigentask-bg);
 }
 
-.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:hover,
-.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:focus,
-.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:focus-visible,
-.pf-v5-c-input-group .pf-v5-c-input-group__item .pf-v5-c-button:active {
-  color: #374151 !important;
-  background: transparent !important;
-  border: none !important;
-  border-bottom: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
+.eigentask-input-wrap .eigentask-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 2.75rem 0.5rem 0.75rem;
+  box-sizing: border-box;
 }
 
-/* No pseudo-element underline/box on toggle button */
-.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
-.pf-v5-c-input-group .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after {
+.eigentask-input-wrap .eigentask-input:focus {
+  box-shadow: none;
+}
+
+.eigentask-input-wrap:focus-within {
+  border-color: var(--eigentask-primary);
+  box-shadow: var(--eigentask-focus);
+}
+
+/* Toggle: absolute right, eye icon only */
+.eigentask-password-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2.5rem;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--eigentask-text-muted);
+}
+
+.eigentask-password-toggle:hover {
+  color: var(--eigentask-text);
+}
+
+.eigentask-password-toggle:focus {
+  outline: none;
+}
+
+/* Hide base theme icon; show eye SVG */
+.eigentask-password-toggle i,
+.eigentask-password-toggle .fa,
+.eigentask-password-toggle [class^="fa-"] {
   display: none !important;
 }
 
-/* Force input fields to match page (--eigentask-bg) */
-.pf-v5-c-login__main-body .pf-v5-c-form-control,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item.pf-m-box,
-.pf-v5-c-login__main-body input[type="text"],
-.pf-v5-c-login__main-body input[type="password"],
-.pf-v5-c-login__main-body input[type="email"],
-.pf-v5-c-login__main .pf-v5-c-form-control,
-.pf-v5-c-login__main .pf-v5-c-input-group__item,
-.pf-v5-c-login__main input[type="text"],
-.pf-v5-c-login__main input[type="password"],
-.pf-v5-c-login__main input[type="email"],
-.pf-v5-c-login input,
-.pf-v5-c-login .pf-v5-c-form-control,
-.pf-v5-c-login .pf-v5-c-input-group__item {
-  background-color: var(--eigentask-bg) !important;
-  background: var(--eigentask-bg) !important;
+.eigentask-password-toggle::before {
+  content: "";
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* Nuclear: input group items use theme background */
-.pf-v5-c-login__main-body .pf-v5-c-input-group,
-.pf-v5-c-login__main .pf-v5-c-input-group {
-  --pf-v5-c-input-group__item--BackgroundColor: var(--eigentask-bg) !important;
-  --pf-v5-c-input-group__item--m-box--BackgroundColor: var(--eigentask-bg) !important;
-}
-.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item,
-.pf-v5-c-login__main .pf-v5-c-input-group .pf-v5-c-input-group__item {
-  background-color: var(--eigentask-bg) !important;
-  background: var(--eigentask-bg) !important;
+.eigentask-password-toggle:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2337352f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
 }
 
-/* Nuclear: form area uses theme background */
-.pf-v5-c-panel__main-body *,
-.pf-v5-c-login__main-body * {
-  background-color: var(--eigentask-bg) !important;
-  background: var(--eigentask-bg) !important;
-}
-.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-primary,
-.pf-v5-c-panel__main-body input[type="submit"],
-.pf-v5-c-login__main-body .pf-v5-c-button.pf-m-primary,
-.pf-v5-c-login__main-body input[type="submit"] {
-  background-color: #2563eb !important;
-  background: #2563eb !important;
+/* Eye-slash when password is visible (input type=text) */
+.eigentask-input-wrap:has(#password[type="text"]) .eigentask-password-toggle::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
 }
 
-/* Password visibility toggle: no box, no border, just icon on right (override nuclear; load last) */
-.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities,
-.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *,
-.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *::before,
-.pf-v5-c-panel__main-body .pf-v5-c-form-control__utilities *::after,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *::before,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child *::after,
-.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-control,
-.pf-v5-c-panel__main-body .pf-v5-c-button.pf-m-control *,
-.pf-v5-c-login__main-body .pf-v5-c-form-control__utilities,
-.pf-v5-c-login__main-body .pf-v5-c-form-control__utilities *,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child * {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+.eigentask-input-wrap:has(#password[type="text"]) .eigentask-password-toggle:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2337352f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
 }
 
-/* Toggle button: no border, no outline, no box, no underline – ever */
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
-  min-width: 0 !important;
-  padding: 0.25rem 0.5rem !important;
-  border: none !important;
-  border-width: 0 !important;
-  border-bottom: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
-  background: transparent !important;
-  background-color: transparent !important;
+.eigentask-error {
+  display: block;
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
 }
 
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus-visible,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:active,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:focus-visible,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button:active {
-  border: none !important;
-  border-width: 0 !important;
-  border-bottom: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
-  background: transparent !important;
-  background-color: transparent !important;
+/* Button */
+.eigentask-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  color: #fff;
+  background: var(--eigentask-primary);
+  border: 1px solid var(--eigentask-primary);
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-/* Kill any pseudo-element underline or box on the toggle button */
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::before,
-.pf-v5-c-login__main-body .pf-v5-c-input-group__item:last-child .pf-v5-c-button::after {
-  display: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
+.eigentask-btn:hover {
+  background: var(--eigentask-primary-hover);
+  border-color: var(--eigentask-primary-hover);
 }
 
-/* Single unified input: nuclear background must not repaint toggle area – keep it transparent */
-.pf-v5-c-panel__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
-.pf-v5-c-panel__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child *,
-.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child,
-.pf-v5-c-login__main-body .pf-v5-c-input-group .pf-v5-c-input-group__item:last-child * {
-  background: transparent !important;
-  background-color: transparent !important;
+.eigentask-btn:focus {
+  outline: none;
+  box-shadow: var(--eigentask-focus);
 }
 
+/* Form options (remember me, forgot password) */
+.eigentask-form-options {
+  margin-bottom: 1rem;
+}
+
+.eigentask-form-options a {
+  color: var(--eigentask-primary);
+  text-decoration: none;
+}
+
+.eigentask-form-options a:hover {
+  color: var(--eigentask-primary-hover);
+}
+
+/* Alerts */
+.eigentask-alert {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.eigentask-alert.pf-m-danger {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.eigentask-alert.pf-m-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+/* Footer / signup */
+.eigentask-signup,
+.eigentask-info {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--eigentask-text-muted);
+  text-align: center;
+}
+
+.eigentask-signup a,
+.eigentask-info a {
+  color: var(--eigentask-primary);
+  text-decoration: none;
+}
+
+.eigentask-signup a:hover,
+.eigentask-info a:hover {
+  color: var(--eigentask-primary-hover);
+}
+
+/* Footer tagline */
+.eigentask-footer {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--eigentask-text-muted);
+  text-align: center;
+}

@@ -4,7 +4,7 @@ This directory contains Keycloak configuration for local development: realm expo
 
 ## Themes
 
-The `themes/` directory contains the **eigentask** custom theme (Keycloak 26 compliant). It extends `keycloak.v2` and matches the web app design (slate/gray background, blue-600 primary, rounded cards and buttons).
+The `themes/` directory contains the **eigentask** custom theme (Keycloak 26 compliant). It extends the **base** theme (not keycloak.v2) so we use minimal styling from scratch—no PatternFly, no nuclear overrides. The login page matches the web app (white background, blue primary, logo above “Eigentask” text, tight spacing).
 
 - **Login**: Login, logout, registration, error, and other auth pages use the eigentask theme.
 - **Account**: Account console uses the same styling.
