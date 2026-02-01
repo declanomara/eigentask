@@ -1,10 +1,18 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte";
+
   export let type: "button" | "submit" | "reset" = "button";
   export let variant: "primary" | "secondary" | "danger" = "primary";
   export let disabled: boolean = false;
   /** When true and variant is danger, use filled style (e.g. "Confirm delete") */
   export let confirming: boolean = false;
   export let className: string = "";
+
+  const dispatch = createEventDispatcher<{ click: MouseEvent }>();
+
+  function handleClick(event: MouseEvent) {
+    dispatch("click", event);
+  }
 
   const baseClass =
     "rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:opacity-60 disabled:pointer-events-none";
@@ -19,9 +27,11 @@
 </script>
 
 <button
+  {...$$restProps}
   {type}
   {disabled}
   class="{baseClass} {variantClass} {className}"
+  on:click={handleClick}
 >
   <slot />
 </button>

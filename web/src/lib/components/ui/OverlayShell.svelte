@@ -66,6 +66,7 @@
     role="dialog"
     aria-modal="true"
     aria-label={title}
+    on:click={handleBackdropClick}
   >
     <div
       class={`bg-surface-elevated shadow-lg w-full ${align === "center" ? "mx-4 my-8 rounded-xl" : "h-full max-w-md md:max-w-lg rounded-none md:rounded-l-xl flex flex-col overflow-hidden"} ${widthClass} ${panelClass}`}
@@ -85,7 +86,7 @@
           </button>
         </div>
       </slot>
-      <div class={align === "right" ? "flex-1 min-h-0 overflow-y-auto flex flex-col p-4" : "p-4"}>
+      <div class={align === "right" ? "flex-1 min-h-0 flex flex-col p-4" : "p-4"}>
         <slot {close} />
       </div>
     </div>

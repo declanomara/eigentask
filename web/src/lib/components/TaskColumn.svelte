@@ -13,6 +13,7 @@
         finalize: DndEvent<Task>;
         select: { task: Task };
         complete: { task: Task };
+        completeNextSession: { task: Task };
     }>();
 
     const forward =
@@ -26,6 +27,10 @@
 
     const forwardComplete = (event: CustomEvent<{ task: Task }>) => {
         dispatch("complete", event.detail);
+    };
+
+    const forwardCompleteNextSession = (event: CustomEvent<{ task: Task }>) => {
+        dispatch("completeNextSession", event.detail);
     };
 
     $: resolvedOptions =
@@ -58,6 +63,7 @@
                     showCompleteButton
                     on:select={forwardSelect}
                     on:complete={forwardComplete}
+                    on:completeNextSession={forwardCompleteNextSession}
                 />
             {/each}
         {:else}
