@@ -73,8 +73,17 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+    # Mount only source/config so image .venv (from RUN uv sync) stays in place and is ephemeral
     volumes:
-      - ./api:/app
+      - ./api/app:/app/app
+      - ./api/main.py:/app/main.py
+      - ./api/alembic:/app/alembic
+      - ./api/alembic.ini:/app/alembic.ini
+      - ./api/pyproject.toml:/app/pyproject.toml
+      - ./api/uv.lock:/app/uv.lock
+      - ./api/tests:/app/tests
+      - ./api/pytest.ini:/app/pytest.ini
+      - ./api/README.md:/app/README.md
     ports:
       - "8000:8000"
     command: ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

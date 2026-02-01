@@ -69,6 +69,8 @@ Notes: The script runs inside the API container when available (using `envs/api.
 docker compose up -d --build
 ```
 
+The API container mounts only source and config dirs (e.g. `app/`, `alembic/`, `main.py`), so the image’s `.venv` (from `RUN uv sync` in the Dockerfile) stays in place and is ephemeral—no volume and no writes to the host. You can run `uv` and tests locally in `api/` with your own `.venv` without conflict.
+
 This merges the base compose with the dev override (no env or ports in base, so base-only is not runnable). To run staging or production locally you would use: `docker compose -f docker-compose.yml -f docker-compose.staging.yml up` (with env files in place).
 
 This runs:

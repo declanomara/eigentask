@@ -83,4 +83,5 @@ Note: `.env` is ignored by git; copy values from the example above.
 
 - The minimal example sets tokens in HttpOnly cookies to keep the sample simple. In production, prefer splitting frontend and backend concerns and use secure cookie settings with HTTPS.
 - If you configure a confidential client, set `KEYCLOAK_CLIENT_SECRET` and ensure the client uses client secret basic or post as appropriate.
+- **Session duration**: How long users stay logged in is controlled by (1) `SESSION_TTL_SECONDS` (Redis and session cookie max-age; default 7 days), and (2) Keycloak realm session/offline timeouts (`ssoSessionIdleTimeout`, `ssoSessionMaxLifespan`, and with `offline_access` scope, `offlineSessionIdleTimeout`). The app requests `offline_access` so refresh tokens follow Keycloak offline session timeouts for long-lived sessions across browser restarts.
 
