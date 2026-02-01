@@ -121,10 +121,12 @@ class TestTasksCreate:
         db_session: AsyncSession,
     ) -> None:
         """Test creating a task with valid data."""
+        due = (datetime.now(UTC) + timedelta(days=1)).isoformat()
         payload = {
             "title": "New Test Task",
             "description": "Test description",
             "status": "BACKLOG",
+            "due_at": due,
         }
 
         response = await authenticated_client.post("/tasks/", json=payload)
@@ -154,11 +156,13 @@ class TestTasksCreate:
         now = datetime.now(UTC)
         start = now + timedelta(hours=1)
         end = start + timedelta(hours=2)
+        due = (now + timedelta(days=1)).isoformat()
 
         payload = {
             "title": "Planned Task",
             "description": "Task with planning",
             "status": "PLANNED",
+            "due_at": due,
             "planned_start_at": start.isoformat(),
             "planned_end_at": end.isoformat(),
             "planned_duration": 120,
@@ -177,7 +181,8 @@ class TestTasksCreate:
         authenticated_client: AsyncClient,
     ) -> None:
         """Test creating a task with only required fields."""
-        payload = {"title": "Minimal Task"}
+        due = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+        payload = {"title": "Minimal Task", "due_at": due}
 
         response = await authenticated_client.post("/tasks/", json=payload)
 
@@ -192,7 +197,8 @@ class TestTasksCreate:
         authenticated_client: AsyncClient,
     ) -> None:
         """Test that creating a task with blank title fails validation."""
-        payload = {"title": "   "}  # Blank/whitespace only
+        due = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+        payload = {"title": "   ", "due_at": due}  # Blank/whitespace only title
 
         response = await authenticated_client.post("/tasks/", json=payload)
 
@@ -208,9 +214,11 @@ class TestTasksCreate:
         now = datetime.now(UTC)
         start = now + timedelta(hours=2)
         end = now + timedelta(hours=1)  # End before start
+        due = (now + timedelta(days=1)).isoformat()
 
         payload = {
             "title": "Invalid Schedule",
+            "due_at": due,
             "planned_start_at": start.isoformat(),
             "planned_end_at": end.isoformat(),
         }
@@ -226,8 +234,10 @@ class TestTasksCreate:
         authenticated_client: AsyncClient,
     ) -> None:
         """Test that negative planned duration fails validation."""
+        due = (datetime.now(UTC) + timedelta(days=1)).isoformat()
         payload = {
             "title": "Task",
+            "due_at": due,
             "planned_duration": -10,
         }
 
@@ -242,11 +252,25 @@ class TestTasksCreate:
         client: AsyncClient,
     ) -> None:
         """Test that creating a task requires authentication."""
-        payload = {"title": "Test Task"}
+        due = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+        payload = {"title": "Test Task", "due_at": due}
 
         response = await client.post("/tasks/", json=payload)
 
         assert response.status_code == 401
+
+    async def test_create_task_missing_due_at_fails(
+        self,
+        authenticated_client: AsyncClient,
+    ) -> None:
+        """Test that creating a task without due_at fails validation."""
+        payload = {"title": "Task without due date"}
+
+        response = await authenticated_client.post("/tasks/", json=payload)
+
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any("due_at" in str(err).lower() for err in detail)
 
 
 @pytest.mark.integration
