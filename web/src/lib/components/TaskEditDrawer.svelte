@@ -1,7 +1,11 @@
 <script lang="ts">
   import { env as publicEnv } from "$env/dynamic/public";
   import { createApiClient, type Task } from "$lib/apiClient";
+  import Button from "$lib/components/ui/Button.svelte";
+  import Input from "$lib/components/ui/Input.svelte";
+  import Label from "$lib/components/ui/Label.svelte";
   import OverlayShell from "$lib/components/ui/OverlayShell.svelte";
+  import Textarea from "$lib/components/ui/Textarea.svelte";
   import { createEventDispatcher } from "svelte";
 
   export let open = false;
@@ -20,7 +24,7 @@
 
   let title = "";
   let description = "";
-  let plannedDuration: number | null = 60;
+  let plannedDuration: number | string | null = 60;
   let dueDate: string | null = null; // YYYY-MM-DD
   let error: string | null = null;
   let loading = false;
@@ -49,9 +53,11 @@
     dispatch("close");
   }
 
-  function normalizeDuration(value: number | null) {
-    if (value === null || Number.isNaN(value)) return null;
-    return value;
+  function normalizeDuration(value: number | string | null): number | null {
+    if (value === null || value === "") return null;
+    const n = typeof value === "string" ? Number(value) : value;
+    if (Number.isNaN(n)) return null;
+    return n;
   }
 
   async function save() {
@@ -124,14 +130,14 @@
   on:close={close}
 >
   <svelte:fragment slot="header" let:close>
-    <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted flex-shrink-0">
       <div>
         <p class="text-xs uppercase text-gray-500 tracking-wide">Task</p>
         <h3 class="text-lg font-semibold text-gray-800">{title || "Edit task"}</h3>
       </div>
       <button
         aria-label="Close"
-        class="text-gray-500 hover:text-gray-700"
+        class="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 rounded"
         on:click={close}
         type="button"
       >
@@ -140,88 +146,91 @@
     </div>
   </svelte:fragment>
 
-  <form class="space-y-4" on:submit|preventDefault={save}>
-    <label class="flex flex-col gap-2 text-sm text-gray-800">
-      Title
-      <input
-        name="title"
-        class="border rounded px-3 py-2 text-sm"
-        bind:value={title}
-        required
-        placeholder="e.g. Draft project brief"
-      />
-    </label>
-
-    <label class="flex flex-col gap-2 text-sm text-gray-800">
-      Description
-      <textarea
-        name="description"
-        class="border rounded px-3 py-2 text-sm"
-        rows="3"
-        bind:value={description}
-        placeholder="What needs to be done?"
-      ></textarea>
-    </label>
-
-    <label class="flex flex-col gap-2 text-sm text-gray-800">
-      Estimated minutes
-      <input
-        name="planned_duration"
-        type="number"
-        min="15"
-        step="15"
-        class="border rounded px-3 py-2 text-sm"
-        bind:value={plannedDuration}
-      />
-    </label>
-
-    <label class="flex flex-col gap-2 text-sm text-gray-800">
-      Due date (optional)
-      <input
-        name="due_at"
-        type="date"
-        class="border rounded px-3 py-2 text-sm"
-        bind:value={dueDate}
-      />
-    </label>
-
-    {#if error}
-      <div class="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded px-3 py-2">
-        {error}
-      </div>
-    {/if}
-
-    <div class="flex items-center justify-between gap-3 pt-2">
-      <div class="flex gap-2">
-        <button
-          type="submit"
-          class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save changes"}
-        </button>
-        <button
-          type="button"
-          class="px-4 py-2 text-gray-700 border border-border rounded hover:bg-surface-hover"
-          on:click={close}
-          disabled={loading}
-        >
-          Cancel
-        </button>
+  <form
+    class="flex flex-col min-h-full"
+    on:submit|preventDefault={save}
+    aria-describedby={error ? "edit-error" : undefined}
+  >
+    <div class="flex-1 space-y-4">
+      <div class="flex flex-col gap-1.5">
+        <Label forId="edit-title">Title</Label>
+        <Input
+          id="edit-title"
+          type="text"
+          name="title"
+          bind:value={title}
+          required
+          placeholder="e.g. Draft project brief"
+        />
       </div>
 
-      <button
-        type="button"
-        class={`px-4 py-2 rounded border ${confirmingDelete ? "bg-rose-600 text-white border-rose-600" : "border-rose-300 text-rose-700 hover:bg-rose-50"}`}
-        on:click={deleteTask}
-        disabled={loading}
-      >
-        {confirmingDelete ? "Confirm delete" : "Delete"}
-      </button>
+      <div class="flex flex-col gap-1.5">
+        <Label forId="edit-description">Description</Label>
+        <Textarea
+          id="edit-description"
+          name="description"
+          bind:value={description}
+          placeholder="What needs to be done?"
+          rows={3}
+        />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <Label forId="edit-duration">Estimated minutes</Label>
+        <Input
+          id="edit-duration"
+          type="number"
+          name="planned_duration"
+          bind:value={plannedDuration}
+          min={15}
+          step={15}
+        />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <Label forId="edit-due">Due date (optional)</Label>
+        <Input
+          id="edit-due"
+          type="date"
+          name="due_at"
+          bind:value={dueDate}
+        />
+      </div>
+
+      {#if error}
+        <div
+          id="edit-error"
+          class="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2"
+          role="alert"
+        >
+          {error}
+        </div>
+      {/if}
     </div>
 
-    <p class="text-xs text-gray-500">
-      Editing only changes task details. Scheduling and status stay as-is.
-    </p>
+    <div class="mt-auto pt-4 border-t border-border-muted space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex gap-2">
+          <Button type="submit" variant="primary" disabled={loading}>
+            {loading ? "Saving…" : "Save changes"}
+          </Button>
+          <Button type="button" variant="secondary" disabled={loading} on:click={close}>
+            Cancel
+          </Button>
+        </div>
+        <Button
+          type="button"
+          variant="danger"
+          confirming={confirmingDelete}
+          disabled={loading}
+          on:click={deleteTask}
+        >
+          {confirmingDelete ? "Confirm delete" : "Delete"}
+        </Button>
+      </div>
+      <p class="text-xs text-gray-500">
+        Editing only changes task details. Scheduling and status stay as-is.
+      </p>
+    </div>
   </form>
 </OverlayShell>

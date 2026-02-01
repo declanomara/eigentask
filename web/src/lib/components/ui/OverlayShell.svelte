@@ -68,16 +68,16 @@
     aria-label={title}
   >
     <div
-      class={`bg-surface-elevated shadow-lg w-full ${align === "center" ? "mx-4 my-8 rounded-md" : "h-full max-w-md md:max-w-lg rounded-none md:rounded-l-xl overflow-y-auto"} ${widthClass} ${panelClass}`}
+      class={`bg-surface-elevated shadow-lg w-full ${align === "center" ? "mx-4 my-8 rounded-xl" : "h-full max-w-md md:max-w-lg rounded-none md:rounded-l-xl flex flex-col overflow-hidden"} ${widthClass} ${panelClass}`}
       bind:this={panelEl}
       role="document"
     >
       <slot name="header" {close}>
-        <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-border-muted flex-shrink-0">
           <h3 class="text-lg font-semibold text-gray-800">{title}</h3>
           <button
             aria-label="Close"
-            class="text-gray-500 hover:text-gray-700"
+            class="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 rounded"
             on:click={close}
             type="button"
           >
@@ -85,7 +85,7 @@
           </button>
         </div>
       </slot>
-      <div class="p-4">
+      <div class={align === "right" ? "flex-1 min-h-0 overflow-y-auto flex flex-col p-4" : "p-4"}>
         <slot {close} />
       </div>
     </div>
