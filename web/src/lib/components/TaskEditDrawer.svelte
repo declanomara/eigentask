@@ -360,46 +360,53 @@
             </div>
           </div>
         {/if}
-        {#if !addSessionOpen}
-          <div class="min-h-0 flex-1 overflow-y-auto pr-1">
-            {#if sessionsLoading}
-              <p class="text-sm text-gray-500">Loading sessions…</p>
-            {:else if taskSessions.length === 0}
-              <p class="text-sm text-gray-500">No sessions. Add one or drag this task onto the timeline.</p>
-            {:else}
-              <ul class="space-y-2">
-                {#each taskSessions as session (session.id)}
-                  <li class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
-                    <span class="min-w-0 truncate">{formatSessionTime(session)}</span>
-                    <span class="flex-shrink-0 text-xs {session.status === 'COMPLETED' ? 'text-gray-600' : 'text-blue-600'}">
-                      {session.status === "COMPLETED" ? "Done" : "Scheduled"}
-                    </span>
-                    <div class="flex items-center gap-1 flex-shrink-0">
-                      {#if session.status === "INCOMPLETE"}
-                        <button
-                          type="button"
-                          class="text-xs p-1.5 rounded border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 inline-flex items-center justify-center"
-                          aria-label="Complete session"
-                          on:click={() => completeSession(session)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                            <line x1="4" y1="22" x2="4" y2="15" />
-                          </svg>
-                        </button>
-                      {/if}
+        <div class="min-h-0 flex-1 overflow-y-auto pr-1">
+          {#if sessionsLoading}
+            <p class="text-sm text-gray-500">Loading sessions…</p>
+          {:else if taskSessions.length === 0}
+            <p class="text-sm text-gray-500">No sessions. Add one or drag this task onto the timeline.</p>
+          {:else}
+            <ul class="space-y-2">
+              {#each taskSessions as session (session.id)}
+                <li class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+                  <span class="min-w-0 truncate">{formatSessionTime(session)}</span>
+                  <span class="flex-shrink-0 text-xs {session.status === 'COMPLETED' ? 'text-gray-600' : 'text-blue-600'}">
+                    {session.status === "COMPLETED" ? "Done" : "Scheduled"}
+                  </span>
+                  <div class="flex items-center gap-1 flex-shrink-0">
+                    {#if session.status === "INCOMPLETE"}
                       <button
                         type="button"
-                        class="text-xs px-2 py-0.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50"
-                        on:click={() => deleteSession(session)}
-                      >Delete</button>
-                    </div>
-                  </li>
-                {/each}
-              </ul>
-            {/if}
-          </div>
-        {/if}
+                        class="text-xs p-1.5 rounded border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 inline-flex items-center justify-center"
+                        aria-label="Complete session"
+                        on:click={() => completeSession(session)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                          <line x1="4" y1="22" x2="4" y2="15" />
+                        </svg>
+                      </button>
+                    {/if}
+                    <button
+                      type="button"
+                      class="text-xs p-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 inline-flex items-center justify-center"
+                      aria-label="Delete session"
+                      on:click={() => deleteSession(session)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
+                  </div>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
       </div>
 
       {#if error}
