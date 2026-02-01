@@ -47,14 +47,16 @@
       error = "Estimated minutes must be at least 15.";
       return;
     }
+    const normalizedDueDate = dueDate && dueDate.trim() ? dueDate : null;
+    if (!normalizedDueDate) {
+      error = "Due date is required.";
+      return;
+    }
 
     loading = true;
     error = null;
 
-    const normalizedDueDate = dueDate && dueDate.trim() ? dueDate : null;
-    const due_at = normalizedDueDate
-      ? new Date(normalizedDueDate).toISOString()
-      : null;
+    const due_at = new Date(normalizedDueDate).toISOString();
 
     const res = await api.createTask({
       title: trimmedTitle,
@@ -112,12 +114,13 @@
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <Label forId="create-due">Due date (optional)</Label>
+    <Label forId="create-due">Due date</Label>
     <Input
       id="create-due"
       type="date"
       name="due_at"
       bind:value={dueDate}
+      required
     />
   </div>
 

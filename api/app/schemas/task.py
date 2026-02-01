@@ -11,7 +11,7 @@ class TaskCreate(BaseModel):
     title: str
     description: str | None = None
     status: TaskStatus = TaskStatus.BACKLOG
-    due_at: datetime | None = None
+    due_at: datetime
     planned_start_at: datetime | None = None
     planned_end_at: datetime | None = None
     planned_duration: int | None = None
