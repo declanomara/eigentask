@@ -113,8 +113,10 @@ class TestAuthCallback:
             assert call_kwargs["data"]["grant_type"] == "authorization_code"
             assert call_kwargs["data"]["code"] == "test-auth-code"
 
-            # Verify session cookie was set
+            # Verify session cookie was set with Max-Age (persistent across browser restarts)
+            set_cookie = callback_response.headers.get("set-cookie", "")
             assert "set-cookie" in callback_response.headers
+            assert "Max-Age=" in set_cookie
 
     async def test_callback_with_invalid_state_redirects(
         self,

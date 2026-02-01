@@ -53,7 +53,7 @@ async def login(request: Request) -> RedirectResponse:
         "client_id": settings.keycloak_client_id,
         "redirect_uri": settings.callback_url,
         "response_type": "code",
-        "scope": "openid profile email",
+        "scope": "openid profile email offline_access",
         "state": state,
         "nonce": nonce,
         "code_challenge": challenge,
@@ -122,12 +122,13 @@ async def oidc_callback(request: Request, code: str, state: str) -> RedirectResp
     r = request.app.state.redis
     await set_tokens(r, sid, token_bundle)
 
-    # Set only the opaque session id as httpOnly cookie
+    # Set only the opaque session id as httpOnly cookie (persistent across browser restarts)
     cookie_params = {
         "httponly": True,
         "secure": settings.cookie_secure,
         "samesite": "lax",
         "path": "/",
+        "max_age": settings.redis_session_ttl_seconds,
     }
     if settings.cookie_domain:
         cookie_params["domain"] = settings.cookie_domain
