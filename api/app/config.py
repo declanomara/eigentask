@@ -2,8 +2,8 @@ import os
 from functools import lru_cache
 from typing import Any
 
-from pydantic import ConfigDict, HttpUrl, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import HttpUrl, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
             return v
         return v
 
-    model_config = ConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # Session/Cookies
     session_secret: str = os.getenv("SESSION_SECRET", "dev-insecure-session-secret")
