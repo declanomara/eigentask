@@ -10,6 +10,7 @@ import app.models
 from app.config import get_settings
 from app.routers import auth as auth_router
 from app.routers import root as root_router
+from app.routers import sessions as sessions_router
 from app.routers import tasks as tasks_router
 from app.routers import users as users_router
 
@@ -57,6 +58,7 @@ application.include_router(auth_router.router)
 application.include_router(users_router.router)
 application.include_router(root_router.router)
 application.include_router(tasks_router.router)
+application.include_router(sessions_router.sessions_range_router)
 
 # Export as 'app' for backwards compatibility with uvicorn
 app = application  # type: ignore[misc]
