@@ -1,6 +1,7 @@
 <script lang="ts">
     import { env as publicEnv } from "$env/dynamic/public";
     import { createApiClient, type AuthStatus, type Task } from "$lib/apiClient";
+    import CreateTaskForm from "$lib/components/CreateTaskForm.svelte";
     import CreateTaskModal from "$lib/components/CreateTaskModal.svelte";
     import Header from "$lib/components/Header.svelte";
     import TaskBoard from "$lib/components/TaskBoard.svelte";
@@ -248,46 +249,14 @@
     title="Create Task"
     on:close={() => (showCreate = false)}
 >
-    <form
-        method="POST"
-        action="?/create"
-        class="grid grid-cols-1 gap-4 w-full max-w-md mx-auto p-2"
-    >
-        <input
-            name="title"
-            placeholder="Task title"
-            required
-            class="border rounded px-2 py-1"
-        />
-        <textarea
-            name="description"
-            placeholder="Description (optional)"
-            rows="3"
-            class="border rounded px-2 py-1"
-        ></textarea>
-        <label class="flex flex-col gap-1 text-sm text-gray-700">
-            Estimated minutes
-            <input
-                name="planned_duration"
-                type="number"
-                min="15"
-                step="15"
-                value="60"
-                class="border rounded px-2 py-1"
-            />
-        </label>
-        <div class="flex gap-2">
-            <button
-                type="submit"
-                class="px-4 py-2 bg-blue-500 text-white rounded">Create</button
-            >
-            <button
-                type="button"
-                class="px-4 py-2"
-                on:click={() => (showCreate = false)}>Cancel</button
-            >
-        </div>
-    </form>
+    <CreateTaskForm
+        on:close={() => (showCreate = false)}
+        on:created={(e) => {
+            tasks = [...tasks, e.detail.task];
+            banner = null;
+            showCreate = false;
+        }}
+    />
 </CreateTaskModal>
 
 <TaskEditDrawer
