@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.db import get_session
+from app.routers import sessions as sessions_router
 from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
+from app.services.sessions import get_session_counts_for_tasks
 from app.services.tasks import (
     create_task_for_user,
     delete_task_for_user,
@@ -15,6 +17,7 @@ from app.services.tasks import (
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+router.include_router(sessions_router.task_sessions_router, prefix="/{task_id}/sessions")
 
 
 @router.get("/")
@@ -26,7 +29,14 @@ async def get_tasks(
 ) -> list[TaskRead]:
     """List tasks owned by the current user."""
     tasks = await list_tasks_for_user(db_session, current_user["sub"], limit=limit, offset=offset)
-    return [TaskRead.model_validate(task) for task in tasks]
+    task_ids = [t.id for t in tasks]
+    counts = await get_session_counts_for_tasks(db_session, task_ids)
+    result = []
+    for task in tasks:
+        read = TaskRead.model_validate(task)
+        total, completed = counts.get(task.id, (0, 0))
+        result.append(read.model_copy(update={"sessions_count": total, "completed_sessions_count": completed}))
+    return result
 
 
 @router.post("/", status_code=201)
@@ -40,7 +50,10 @@ async def create_task(
         task = await create_task_for_user(db_session, current_user["sub"], payload)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return TaskRead.model_validate(task)
+    counts = await get_session_counts_for_tasks(db_session, [task.id])
+    total, completed = counts.get(task.id, (0, 0))
+    read = TaskRead.model_validate(task)
+    return read.model_copy(update={"sessions_count": total, "completed_sessions_count": completed})
 
 
 @router.delete("/{task_id}", status_code=204)
@@ -71,7 +84,10 @@ async def update_task(
         updated = await update_task_for_user(db_session, task, payload)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return TaskRead.model_validate(updated)
+    counts = await get_session_counts_for_tasks(db_session, [updated.id])
+    total, completed = counts.get(updated.id, (0, 0))
+    read = TaskRead.model_validate(updated)
+    return read.model_copy(update={"sessions_count": total, "completed_sessions_count": completed})
 
 
 # Support PUT for clients that use full updates
@@ -84,3 +100,20 @@ async def update_task_put(
 ) -> TaskRead:
     """Full update variant for clients that use PUT semantics."""
     return await update_task(task_id, payload, current_user, db_session)
+
+
+# Single-task get (for consistency; optional - not in plan but useful for edit drawer)
+@router.get("/{task_id}", response_model=TaskRead)
+async def get_task(
+    task_id: int,
+    current_user: Annotated[dict[str, str], Depends(get_current_user)],
+    db_session: Annotated[AsyncSession, Depends(get_session)],
+) -> TaskRead:
+    """Get a single task by id."""
+    task = await get_task_for_user(db_session, task_id, current_user["sub"])
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    counts = await get_session_counts_for_tasks(db_session, [task.id])
+    total, completed = counts.get(task.id, (0, 0))
+    read = TaskRead.model_validate(task)
+    return read.model_copy(update={"sessions_count": total, "completed_sessions_count": completed})
