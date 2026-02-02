@@ -103,7 +103,7 @@ async def update_task_put(
 
 
 # Single-task get (for consistency; optional - not in plan but useful for edit drawer)
-@router.get("/{task_id}", response_model=TaskRead)
+@router.get("/{task_id}")
 async def get_task(
     task_id: int,
     current_user: Annotated[dict[str, str], Depends(get_current_user)],

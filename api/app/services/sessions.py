@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +15,8 @@ def _normalize_create_times(payload: SessionCreate) -> tuple[datetime, datetime]
     if payload.duration_minutes is not None and payload.duration_minutes > 0:
         end = payload.scheduled_start_at + timedelta(minutes=payload.duration_minutes)
         return payload.scheduled_start_at, end
-    raise ValueError("provide either scheduled_end_at or duration_minutes")
+    msg = "provide either scheduled_end_at or duration_minutes"
+    raise ValueError(msg)
 
 
 async def _sessions_overlap(
@@ -120,11 +120,13 @@ async def create_session_for_task(
     """Create a session for the task; set task to PLANNED if first session. Overlap check required."""
     task = await session.get(Task, task_id)
     if task is None or task.created_by_sub != created_by_sub:
-        raise LookupError("task not found")
+        msg = "task not found"
+        raise LookupError(msg)
 
     start_at, end_at = _normalize_create_times(payload)
     if await _sessions_overlap(session, created_by_sub, start_at, end_at):
-        raise ValueError("session overlaps another scheduled session")
+        msg = "session overlaps another scheduled session"
+        raise ValueError(msg)
 
     count_stmt = select(func.count(TaskSession.id)).where(TaskSession.task_id == task_id)
     count_result = await session.execute(count_stmt)
@@ -156,7 +158,8 @@ async def update_session_for_user(
     new_end = data.get("scheduled_end_at", task_session.scheduled_end_at)
     if "scheduled_start_at" in data or "scheduled_end_at" in data:
         if new_end <= new_start:
-            raise ValueError("scheduled_end_at must be after scheduled_start_at")
+            msg = "scheduled_end_at must be after scheduled_start_at"
+            raise ValueError(msg)
         if await _sessions_overlap(
             session,
             created_by_sub,
@@ -164,7 +167,8 @@ async def update_session_for_user(
             new_end,
             exclude_session_id=task_session.id,
         ):
-            raise ValueError("session overlaps another scheduled session")
+            msg = "session overlaps another scheduled session"
+            raise ValueError(msg)
         task_session.scheduled_start_at = new_start
         task_session.scheduled_end_at = new_end
     if "status" in data:
@@ -195,7 +199,7 @@ async def get_session_counts_for_tasks(
             TaskSession.task_id,
             func.count(TaskSession.id).label("total"),
             func.count(TaskSession.id).filter(
-                TaskSession.status == TaskSessionStatus.COMPLETED
+                TaskSession.status == TaskSessionStatus.COMPLETED,
             ).label("completed"),
         )
         .where(TaskSession.task_id.in_(task_ids))

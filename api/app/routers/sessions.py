@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.db import get_session
+from app.models.task_session import TaskSessionStatus
 from app.schemas.session import SessionCreate, SessionRead, SessionReadWithTask, SessionUpdate
 from app.services.sessions import (
     create_session_for_task,
@@ -21,22 +22,29 @@ from app.services.sessions import (
 task_sessions_router = APIRouter(tags=["task-sessions"])
 
 
-@task_sessions_router.get("", response_model=list[SessionRead])
+@task_sessions_router.get("")
 async def get_sessions_for_task(
     task_id: int,
     current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-    date_from: datetime | None = Query(None, alias="date_from", description="Filter sessions ending on/after"),
-    date_to: datetime | None = Query(None, alias="date_to", description="Filter sessions starting on/before"),
-    status: str | None = Query(None, description="INCOMPLETE or COMPLETED"),
+    date_from: Annotated[
+        datetime | None,
+        Query(alias="date_from", description="Filter sessions ending on/after"),
+    ] = None,
+    date_to: Annotated[
+        datetime | None,
+        Query(alias="date_to", description="Filter sessions starting on/before"),
+    ] = None,
+    session_status: Annotated[
+        str | None,
+        Query(description="INCOMPLETE or COMPLETED"),
+    ] = None,
 ) -> list[SessionRead]:
     """List sessions for a task owned by the current user."""
-    from app.models.task_session import TaskSessionStatus
-
     status_filter = None
-    if status is not None:
+    if session_status is not None:
         try:
-            status_filter = TaskSessionStatus(status)
+            status_filter = TaskSessionStatus(session_status)
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,7 +61,7 @@ async def get_sessions_for_task(
     return [SessionRead.model_validate(s) for s in sessions]
 
 
-@task_sessions_router.post("", response_model=SessionRead, status_code=201)
+@task_sessions_router.post("", status_code=201)
 async def create_session(
     task_id: int,
     payload: SessionCreate,
@@ -70,7 +78,7 @@ async def create_session(
     return SessionRead.model_validate(session_obj)
 
 
-@task_sessions_router.patch("/{session_id}", response_model=SessionRead)
+@task_sessions_router.patch("/{session_id}")
 async def update_session(
     task_id: int,
     session_id: int,
@@ -107,12 +115,12 @@ async def delete_session(
 sessions_range_router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
-@sessions_range_router.get("", response_model=list[SessionReadWithTask])
+@sessions_range_router.get("")
 async def get_sessions_in_range_endpoint(
     current_user: Annotated[dict[str, str], Depends(get_current_user)],
     db_session: Annotated[AsyncSession, Depends(get_session)],
-    from_at: datetime = Query(..., alias="from", description="Start of range (ISO datetime)"),
-    to_at: datetime = Query(..., alias="to", description="End of range (ISO datetime)"),
+    from_at: Annotated[datetime, Query(..., alias="from", description="Start of range (ISO datetime)")],
+    to_at: Annotated[datetime, Query(..., alias="to", description="End of range (ISO datetime)")],
 ) -> list[SessionReadWithTask]:
     """List sessions in [from, to] for the current user, with task title for timeline."""
     if from_at >= to_at:

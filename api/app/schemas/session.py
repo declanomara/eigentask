@@ -18,15 +18,18 @@ class SessionCreate(BaseModel):
     @classmethod
     def _duration_positive(cls, v: int | None) -> int | None:
         if v is not None and v <= 0:
-            raise ValueError("duration_minutes must be positive when provided")
+            msg = "duration_minutes must be positive when provided"
+            raise ValueError(msg)
         return v
 
     @model_validator(mode="after")
     def _require_end_or_duration(self) -> "SessionCreate":
         if self.scheduled_end_at is None and self.duration_minutes is None:
-            raise ValueError("provide either scheduled_end_at or duration_minutes")
+            msg = "provide either scheduled_end_at or duration_minutes"
+            raise ValueError(msg)
         if self.scheduled_end_at is not None and self.scheduled_end_at <= self.scheduled_start_at:
-            raise ValueError("scheduled_end_at must be after scheduled_start_at")
+            msg = "scheduled_end_at must be after scheduled_start_at"
+            raise ValueError(msg)
         return self
 
 
@@ -44,7 +47,8 @@ class SessionUpdate(BaseModel):
         start = self.scheduled_start_at
         end = self.scheduled_end_at
         if start is not None and end is not None and end <= start:
-            raise ValueError("scheduled_end_at must be after scheduled_start_at")
+            msg = "scheduled_end_at must be after scheduled_start_at"
+            raise ValueError(msg)
         return self
 
 
