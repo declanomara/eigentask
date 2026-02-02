@@ -307,7 +307,7 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <Label forId="edit-due">Due date (optional)</Label>
+        <Label forId="edit-due">Due date</Label>
         <Input
           id="edit-due"
           type="date"
