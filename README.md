@@ -25,32 +25,39 @@ The guiding philosophy of EigenTask's design is to minimize vendor lock-in and p
 | `nginx/` | Nginx configs for staging/production |
 | `envs/` | Env files: `*.dev.env` for local dev, `*.example.env` as templates |
 | `docs/` | Deployment, volume migration, and other docs |
-| `scripts/` | `deploy.sh` (CI deploy), `migrate.sh` (Alembic helper) |
+| `scripts/` | `deploy.sh` (CI deploy), `migrate.py` (Alembic helper) |
 | Root | `docker-compose.yml` (base), `docker-compose.override.yml` (dev), `docker-compose.staging.yml` / `.prod.yml` (overlays) |
 
 **Deployment**: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for GitHub Actions, server setup, and env files.
 
-## Database migrations (scripts/migrate.sh)
+## Database migrations (scripts/migrate.py)
 
-We use a simple wrapper to run Alembic commands in local Docker or on a host. **Run from repo root** so `docker compose` finds the compose files.
+Python script to run Alembic in the API container. **Run from repo root.** Pass the environment (`staging`, `production`, or `local`) then the Alembic command.
 
 ```bash
-# Create a new autogenerate migration
-./scripts/migrate.sh revision "Add foo to bar"
+# Apply migrations (after deploy or locally)
+python scripts/migrate.py staging upgrade
+python scripts/migrate.py production upgrade
+python scripts/migrate.py local upgrade
 
-# Apply all migrations
-./scripts/migrate.sh upgrade
+# Create a new autogenerate migration (local only)
+python scripts/migrate.py local revision "Add foo to bar"
 
-# Downgrade one step (or pass a specific revision)
-./scripts/migrate.sh downgrade -1
+# Downgrade one step
+python scripts/migrate.py staging downgrade -1
 
 # Show current head / history / stamp
-./scripts/migrate.sh current
-./scripts/migrate.sh history
-./scripts/migrate.sh stamp
+python scripts/migrate.py staging current
+python scripts/migrate.py staging history
+python scripts/migrate.py staging stamp
 ```
 
-Notes: The script runs inside the API container when available (using `envs/api.dev.env`). Review autogenerate output before committing; commit migration files in `api/alembic/versions/`.
+- **local**: uses `docker-compose.yml` + `docker-compose.override.yml` (dev stack).
+- **staging** / **production**: use the matching overlay and `ENV_FILE_PATH` (default `/etc/eigentask` on the server). Run on the server after deploy, or from your machine if Docker can reach the stack.
+
+When run *inside* the API container (e.g. `docker compose run api python scripts/migrate.py staging upgrade`), it runs Alembic directly. Otherwise it runs `docker compose exec api ... alembic ...`.
+
+Review autogenerate output before committing; commit migration files in `api/alembic/versions/`.
 
 # Installation
 
@@ -98,7 +105,7 @@ If you need to modify the realm configuration, you can:
 4) Apply database migrations
 
 ```bash
-./scripts/migrate.sh upgrade
+python scripts/migrate.py local upgrade
 ```
 
 The API also creates tables on startup as a safeguard, but you should treat Alembic migrations as the source of truth and always run them.
@@ -202,8 +209,8 @@ This workflow ensures:
 2) Make changes with clear, focused commits.
 3) If you change models:
    - Update SQLAlchemy models.
-   - Generate a migration: `./scripts/migrate.sh revision "Your message"`
-   - Review and apply: `./scripts/migrate.sh upgrade`
+   - Generate a migration: `python scripts/migrate.py local revision "Your message"`
+   - Review and apply: `python scripts/migrate.py local upgrade`
 4) Open a PR targeting `staging` with a concise description, screenshots if UI changes, and any migration notes.
 5) After merge to `staging`, changes will auto-deploy to the dev environment for testing.
 6) Weekly, `staging` is automatically merged to `main` for production deployment.
