@@ -95,6 +95,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: eigentask-web-dev
     env_file: [./envs/web.dev.env]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       api:
         condition: service_started

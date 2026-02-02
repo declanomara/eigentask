@@ -96,6 +96,8 @@ class TaskRead(BaseModel):
     planned_duration: int | None
     created_at: datetime
     updated_at: datetime
+    sessions_count: int = 0
+    completed_sessions_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

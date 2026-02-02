@@ -15,6 +15,7 @@
         select: { task: Task };
         complete: { task: Task };
         reopen: { task: Task };
+        completeNextSession: { task: Task };
     }>();
 
     $: backlogOptions = { id: "backlog", items: backlogTasks } satisfies DndZoneOptions<Task>;
@@ -34,6 +35,10 @@
 
     function forwardReopen(event: CustomEvent<{ task: Task }>) {
         dispatch("reopen", event.detail);
+    }
+
+    function forwardCompleteNextSession(event: CustomEvent<{ task: Task }>) {
+        dispatch("completeNextSession", event.detail);
     }
 
     let showCompleted = false;
@@ -57,6 +62,7 @@
         on:finalize={forward}
         on:select={forwardSelect}
         on:complete={forwardComplete}
+        on:completeNextSession={forwardCompleteNextSession}
     />
 </div>
 
