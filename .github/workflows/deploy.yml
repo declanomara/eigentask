@@ -23,13 +23,13 @@ on:
           - production
 
 concurrency:
-  group: deploy-${{ github.ref_name == 'main' && 'production' || 'staging' }}
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.event_name == 'workflow_run' && (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') || (github.ref_name == 'main' && 'production' || 'staging')) }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.event_name == 'workflow_run' && (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') || (github.ref_name == 'main' && 'production' || 'staging')) }}
     # Only deploy on actual push to main/staging, not when CI ran due to a PR.
     # workflow_run: only proceed if CI was triggered by push (not pull_request).
     if: |
@@ -58,9 +58,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/eigentask' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_REF_NAME: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}
           GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-          ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+          ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.event_name == 'workflow_run' && (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') || (github.ref_name == 'main' && 'production' || 'staging')) }}
         run: |
           chmod +x ./scripts/deploy.sh
           ./scripts/deploy.sh
