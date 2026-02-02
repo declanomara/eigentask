@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String, Text, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
+
+if TYPE_CHECKING:
+    from app.models.task_session import TaskSession
 
 
 class TaskStatus(str, Enum):
@@ -47,4 +53,11 @@ class Task(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+    sessions: Mapped[list[TaskSession]] = relationship(
+        "TaskSession",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )

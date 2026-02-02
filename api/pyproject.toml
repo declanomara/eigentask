@@ -60,6 +60,19 @@ ignore = [
 "app/config.py" = [
     "ANN401",    # Allow Any in Pydantic validators and __init__
 ]
+"app/models/task.py" = [
+    "TC003",     # datetime needed at runtime for SQLAlchemy
+]
+"app/models/task_session.py" = [
+    "TC003",     # datetime in mapped columns
+    "UP037",     # keep "Task" quoted for forward ref at runtime
+]
+"app/routers/sessions.py" = [
+    "PLR0913",   # Allow many arguments in route handlers
+]
+"app/services/sessions.py" = [
+    "PLR0913",   # Allow many arguments in session service
+]
 
 [tool.ty.environment]
 extra-paths = [".venv/"]
